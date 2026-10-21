@@ -319,9 +319,9 @@ export const PublicMenuView: React.FC = () => {
 
             <button
               onClick={() => setIsCheckoutOpen(true)}
-              className="px-5 py-2.5 rounded-xl bg-[#D07A6D] hover:bg-[#B85848] text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-4 sm:px-5 py-2.5 rounded-xl bg-[#D07A6D] hover:bg-[#B85848] text-white text-xs sm:text-sm font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer min-h-[44px] shrink-0"
             >
-              <span>Avançar p/ Encomenda</span>
+              <span>Avançar</span>
               <Send className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -330,9 +330,9 @@ export const PublicMenuView: React.FC = () => {
 
       {/* Checkout Drawer / Modal */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#EFE8DE] overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="px-6 py-4 border-b border-[#EFE8DE] flex items-center justify-between bg-[#FBF8F3]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-[#EFE8DE] overflow-hidden max-h-[92vh] sm:max-h-[90vh] flex flex-col">
+            <div className="px-5 sm:px-6 py-4 border-b border-[#EFE8DE] flex items-center justify-between bg-[#FBF8F3]">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#D07A6D]">
                   • Finalizar Pedido
@@ -341,7 +341,7 @@ export const PublicMenuView: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsCheckoutOpen(false)}
-                className="p-1.5 text-[#7C6E68] hover:text-[#231818] rounded-lg"
+                className="p-1.5 text-[#7C6E68] hover:text-[#231818] rounded-lg min-w-[36px] min-h-[36px] flex items-center justify-center cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>

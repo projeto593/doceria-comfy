@@ -130,37 +130,37 @@ export const SuperAdminView: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FBF8F3] text-[#231818] pb-20 antialiased">
       {/* Super Admin Top Header */}
-      <header className="bg-[#261A1A] text-white border-b border-white/10 px-6 py-5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+      <header className="bg-[#261A1A] text-white border-b border-white/10 px-4 sm:px-6 py-3.5 sm:py-5">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Logo variant="light" size="sm" onClick={() => setViewMode('landing')} />
             <div className="h-6 w-px bg-white/20 hidden sm:block" />
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#D07A6D] text-white flex items-center gap-1.5">
-              <span>👑 Painel Super Administrador</span>
+            <span className="text-[11px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-lg bg-[#D07A6D] text-white flex items-center gap-1.5 whitespace-nowrap">
+              <span>👑 Super Adm</span>
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-block text-xs font-mono text-white/70 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden lg:inline-block text-xs font-mono text-white/70 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
               projetointegradors303@gmail.com
             </span>
             <button
               onClick={() => setViewMode('landing')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium text-white transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium text-white transition-colors cursor-pointer shrink-0"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Sair do Super Adm</span>
+              <span>Sair</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Title and Action */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-[#231818]">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#231818]">
               Gerenciamento Global de Docerias
             </h1>
             <p className="text-xs text-[#7C6E68] mt-1">
@@ -170,7 +170,7 @@ export const SuperAdminView: React.FC = () => {
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer shrink-0"
+            className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] active:scale-[0.98] text-white text-xs font-bold shadow-xs transition-all cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4 text-[#D07A6D]" />
             <span>+ Cadastrar Nova Doceria</span>
@@ -278,9 +278,145 @@ export const SuperAdminView: React.FC = () => {
           </div>
         </div>
 
-        {/* Stores Table / Cards */}
+        {/* Stores List: Mobile Card View (block md:hidden) + Desktop Table (hidden md:block) */}
         <div className="bg-white rounded-3xl border border-[#EFE8DE] shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile Card List */}
+          <div className="block md:hidden divide-y divide-[#EFE8DE]">
+            {filteredStores.length === 0 ? (
+              <div className="p-8 text-center text-[#7C6E68] text-xs">
+                Nenhuma doceria encontrada para os filtros atuais.
+              </div>
+            ) : (
+              filteredStores.map((store) => {
+                const isBlocked = store.status === 'blocked';
+                const isPending = store.status === 'pending_approval';
+
+                return (
+                  <div
+                    key={store.id}
+                    className={`p-4 space-y-3.5 transition-colors ${
+                      isPending ? 'bg-amber-50/40' : isBlocked ? 'bg-red-50/25' : ''
+                    }`}
+                  >
+                    {/* Header info */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 ${
+                            isPending
+                              ? 'bg-amber-100 text-amber-700'
+                              : isBlocked
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-[#F8F4EE] text-[#D07A6D]'
+                          }`}
+                        >
+                          <StoreIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-sm text-[#231818] leading-tight">{store.name}</h4>
+                          <p className="text-[#7C6E68] text-xs flex items-center gap-1 mt-0.5">
+                            <User className="w-3 h-3 text-[#D07A6D]" /> {store.ownerName}
+                          </p>
+                          <span className="text-[11px] text-[#7C6E68] flex items-center gap-1 mt-0.5">
+                            <MapPin className="w-3 h-3" /> {store.city}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Status Badge */}
+                      <div>
+                        {isPending ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 text-[10px] font-bold">
+                            <Clock className="w-3 h-3 text-amber-700" /> Em Análise
+                          </span>
+                        ) : isBlocked ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-100 text-red-800 text-[10px] font-bold">
+                            <Lock className="w-3 h-3" /> Bloqueada
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                            <ShieldCheck className="w-3 h-3" /> Ativa
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Contacts & Password */}
+                    <div className="bg-[#FBF8F3] p-3 rounded-2xl border border-[#EFE8DE] space-y-2 text-xs">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[#7C6E68] flex items-center gap-1">
+                          <Phone className="w-3.5 h-3.5 text-[#D07A6D]" /> WhatsApp
+                        </span>
+                        <strong className="text-[#231818] font-mono">{store.phone}</strong>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[#7C6E68] flex items-center gap-1">
+                          <Mail className="w-3.5 h-3.5 text-[#7C6E68]" /> Gmail
+                        </span>
+                        <span className="text-[#231818] font-mono text-[11px] truncate max-w-[180px]">{store.email}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-[#EFE8DE]/80">
+                        <span className="text-[#7C6E68] flex items-center gap-1">
+                          <Key className="w-3.5 h-3.5 text-amber-600" /> Senha
+                        </span>
+                        {store.loginPassword ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-lg bg-white border border-[#EFE8DE] text-[#231818]">
+                              {store.loginPassword}
+                            </span>
+                            <button
+                              onClick={() => handleOpenPasswordModal(store)}
+                              className="text-[11px] text-[#D07A6D] font-bold underline cursor-pointer p-1"
+                            >
+                              Editar
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-amber-700 text-[11px] font-bold">Sem senha</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions Button Row - Mobile Touch Target Friendly */}
+                    <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                      {isPending ? (
+                        <button
+                          onClick={() => handleOpenPasswordModal(store)}
+                          className="w-full min-h-[42px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                        >
+                          <Key className="w-4 h-4" />
+                          <span>Aprovar & Enviar Senha no WhatsApp</span>
+                        </button>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2 w-full">
+                          <button
+                            onClick={() => toggleStoreBlockStatus(store.id)}
+                            className={`min-h-[42px] px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${
+                              isBlocked
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                            }`}
+                          >
+                            {isBlocked ? 'Desbloquear' : 'Bloquear'}
+                          </button>
+                          <button
+                            onClick={() => switchStore(store.id)}
+                            className="min-h-[42px] px-3 py-2 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                          >
+                            <span>Acessar Painel</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-[#D07A6D]" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop Table View (hidden on mobile, preserved for PC) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-[#FBF8F3] border-b border-[#EFE8DE] text-[#7C6E68] uppercase text-[10px] font-bold tracking-wider">
                 <tr>

@@ -10,6 +10,11 @@ import {
   Users,
   BarChart3,
   Check,
+  UserCheck,
+  Clock,
+  Key,
+  MessageCircle,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
@@ -17,12 +22,15 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FBF8F3] text-[#231818] antialiased selection:bg-[#D07A6D]/20 selection:text-[#231818]">
-      {/* 1. TOP BAR CONTRACT: Brand | 4-5 Links | 1-2 Actions */}
-      <header className="sticky top-0 z-30 bg-[#FBF8F3]/90 backdrop-blur-md border-b border-[#EFE8DE] transition-all">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between gap-8">
+      {/* 1. TOP BAR: Responsive Brand | Nav Links | Actions */}
+      <header className="sticky top-0 z-30 bg-[#FBF8F3]/95 backdrop-blur-md border-b border-[#EFE8DE] transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 h-16 sm:h-20 flex items-center justify-between gap-3 sm:gap-8">
           {/* Zone 1: Single Brand element */}
           <div className="shrink-0">
-            <Logo variant="dark" size="md" />
+            <Logo variant="dark" size="sm" className="sm:hidden" />
+            <div className="hidden sm:block">
+              <Logo variant="dark" size="md" />
+            </div>
           </div>
 
           {/* Zone 2: Navigation Links */}
@@ -48,44 +56,44 @@ export const LandingPage: React.FC = () => {
           </nav>
 
           {/* Zone 3: Actions */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               onClick={() => setViewMode('login')}
-              className="px-4 py-2 text-sm font-medium text-[#231818] hover:bg-[#EFE8DE]/60 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[#231818] hover:bg-[#EFE8DE]/60 rounded-xl transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[40px] flex items-center"
             >
               Entrar
             </button>
             <button
               onClick={() => setViewMode('register-store')}
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold text-white bg-[#2B1D1D] hover:bg-[#3D2B2B] rounded-xl shadow-xs transition-all whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#2B1D1D] hover:bg-[#3D2B2B] rounded-xl shadow-xs transition-all whitespace-nowrap shrink-0 cursor-pointer min-h-[40px]"
             >
-              <span>Começar agora</span>
-              <ArrowUpRight className="w-4 h-4" />
+              <span>Começar</span>
+              <ArrowUpRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
             </button>
           </div>
         </div>
       </header>
 
       {/* 2. HERO SECTION: Replicating Image 2 with High Precision */}
-      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-32 overflow-hidden">
+      <section className="relative pt-8 pb-16 sm:pt-16 sm:pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
         {/* Subtle decorative confectionery background blurbs */}
-        <div className="absolute top-1/4 right-0 w-96 h-96 bg-[#D07A6D]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-80 h-80 bg-[#E5B5AC]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/4 right-0 w-72 sm:w-96 h-72 sm:h-96 bg-[#D07A6D]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 left-10 w-60 sm:w-80 h-60 sm:h-80 bg-[#E5B5AC]/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
             {/* Left Content Column (6 cols) */}
-            <div className="lg:col-span-6 space-y-6">
+            <div className="lg:col-span-6 space-y-4 sm:space-y-6">
               {/* Kicker Tag */}
               <div className="inline-flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#D07A6D]" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#D07A6D]">
+                <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-[#D07A6D]">
                   A Plataforma da sua Doceria
                 </span>
               </div>
 
               {/* Giant Serif Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-[62px] font-serif font-bold text-[#231818] leading-[1.08] tracking-tight text-balance">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[62px] font-serif font-bold text-[#231818] leading-[1.12] tracking-tight text-balance">
                 Mais tempo para{' '}
                 <span className="text-[#D07A6D] italic font-normal">criar.</span>
                 <br />
@@ -94,24 +102,24 @@ export const LandingPage: React.FC = () => {
               </h1>
 
               {/* Body Text */}
-              <p className="text-base sm:text-lg text-[#7C6E68] leading-relaxed max-w-xl">
+              <p className="text-sm sm:text-base md:text-lg text-[#7C6E68] leading-relaxed max-w-xl">
                 A Comfy reúne pedidos, catálogo, clientes e financeiro em um só lugar, para você
                 cuidar do que realmente importa: seus doces.
               </p>
 
-              {/* CTA Action Row */}
-              <div className="flex flex-wrap items-center gap-4 pt-3">
+              {/* CTA Action Row - Mobile friendly full width on small screens */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                 <button
                   onClick={() => setViewMode('register-store')}
-                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-sm font-semibold shadow-md transition-all hover:-translate-y-0.5 cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-sm font-semibold shadow-md transition-all cursor-pointer min-h-[48px]"
                 >
                   <span>Teste grátis por 14 dias</span>
-                  <ArrowUpRight className="w-4 h-4" />
+                  <ArrowUpRight className="w-4 h-4 text-[#D07A6D]" />
                 </button>
 
                 <a
                   href="#como-funciona"
-                  className="inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold text-[#231818] hover:text-[#D07A6D] transition-colors"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 text-xs sm:text-sm font-semibold text-[#231818] hover:text-[#D07A6D] transition-colors rounded-xl bg-black/5 sm:bg-transparent min-h-[44px]"
                 >
                   <span>Ver como funciona</span>
                   <ArrowRight className="w-4 h-4" />
@@ -119,30 +127,30 @@ export const LandingPage: React.FC = () => {
               </div>
 
               {/* Trust signals */}
-              <div className="pt-4 flex items-center gap-6 text-xs text-[#7C6E68]">
+              <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-xs text-[#7C6E68]">
                 <div className="flex items-center gap-1.5">
-                  <Check className="w-4 h-4 text-[#4A7C59]" />
+                  <Check className="w-4 h-4 text-[#4A7C59] shrink-0" />
                   <span>Sem necessidade de cartão</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Check className="w-4 h-4 text-[#4A7C59]" />
+                  <Check className="w-4 h-4 text-[#4A7C59] shrink-0" />
                   <span>Configuração em 3 minutos</span>
                 </div>
               </div>
             </div>
 
             {/* Right Perspective Mockup Column (6 cols) */}
-            <div className="lg:col-span-6 relative">
-              {/* Floating growth badge */}
-              <div className="absolute -left-4 sm:-left-8 bottom-8 sm:bottom-12 z-20 bg-white/95 backdrop-blur-md p-3.5 sm:p-4 rounded-2xl shadow-xl border border-[#EFE8DE] flex items-center gap-3 animate-bounce-slow">
-                <div className="w-10 h-10 rounded-xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center font-bold">
-                  <TrendingUp className="w-5 h-5" />
+            <div className="lg:col-span-6 relative mt-4 lg:mt-0">
+              {/* Floating growth badge - safely positioned inside viewport */}
+              <div className="absolute left-2 sm:-left-6 bottom-3 sm:bottom-12 z-20 bg-white/95 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl shadow-xl border border-[#EFE8DE] flex items-center gap-2.5 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center font-bold">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div>
-                  <span className="text-base font-serif font-bold text-[#231818] block leading-tight">
+                  <span className="text-sm sm:text-base font-serif font-bold text-[#231818] block leading-tight">
                     +32%
                   </span>
-                  <span className="text-xs text-[#7C6E68]">de crescimento médio</span>
+                  <span className="text-[10px] sm:text-xs text-[#7C6E68]">de crescimento médio</span>
                 </div>
               </div>
 
@@ -223,160 +231,210 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. BENTO GRID FEATURES: Recursos da Doceria */}
-      <section id="recursos" className="py-24 bg-white border-y border-[#EFE8DE]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="max-w-2xl mb-16">
+      {/* 3. FEATURES: Recursos da Doceria Lado a Lado & Resumidos */}
+      <section id="recursos" className="py-20 bg-white border-y border-[#EFE8DE]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+          <div className="max-w-2xl mb-12">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#D07A6D]">
               • Recursos Feitos para Confeitaria
             </span>
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#231818] mt-2 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#231818] mt-2 tracking-tight">
               Tudo o que sua doceria precisa, sem complicações.
             </h2>
-            <p className="text-sm sm:text-base text-[#7C6E68] mt-3 leading-relaxed">
-              Diga adeus a papéis espalhados e mensagens perdidas. Com a Comfy, sua cozinha opera no
-              ritmo certo e suas encomendas saem no horário exato.
+            <p className="text-sm sm:text-base text-[#7C6E68] mt-2">
+              Praticidade total para você focar no que mais ama: fazer doces incríveis.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Bento Card 1: Encomendas e Pedidos (Span 2) */}
-            <div className="md:col-span-2 bg-[#FBF8F3] rounded-3xl p-8 border border-[#EFE8DE] shadow-xs flex flex-col justify-between">
+          {/* 4 Cards Side by Side (1 col mobile, 2 cols tablet, 4 cols desktop) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Card 1: Encomendas */}
+            <div className="bg-[#FBF8F3] rounded-3xl p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-6">
-                  <ShoppingBag className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-5">
+                  <ShoppingBag className="w-5 h-5" />
                 </div>
-                <h3 className="text-2xl font-serif font-bold text-[#231818]">
-                  Controle de Encomendas & Produção
+                <h3 className="text-lg font-serif font-bold text-[#231818] leading-snug">
+                  Controle de Encomendas
                 </h3>
-                <p className="text-sm text-[#7C6E68] mt-2 max-w-lg leading-relaxed">
-                  Fluxo organizado de pedidos: da confirmação pelo WhatsApp à bancada de produção e
-                  embalagem. Notifique o cliente e saiba exatamente o que assar a cada dia.
+                <p className="text-xs text-[#7C6E68] mt-2 leading-relaxed">
+                  Fluxo de pedidos: do WhatsApp à produção e entrega com status em tempo real.
                 </p>
               </div>
-
-              <div className="mt-8 pt-6 border-t border-[#EFE8DE] flex items-center justify-between text-xs font-semibold text-[#2B1D1D]">
-                <span className="text-[#7C6E68]">Status em tempo real</span>
-                <span className="text-[#D07A6D] font-mono font-bold">Produção & Entregas</span>
+              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center justify-between text-[11px] font-semibold text-[#D07A6D]">
+                <span>Status em tempo real</span>
+                <span className="w-2 h-2 rounded-full bg-[#4A7C59]" />
               </div>
             </div>
 
-            {/* Bento Card 2: Catálogo de Doces */}
-            <div className="bg-[#FBF8F3] rounded-3xl p-8 border border-[#EFE8DE] shadow-xs flex flex-col justify-between">
+            {/* Card 2: Cardápio */}
+            <div className="bg-[#FBF8F3] rounded-3xl p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-6">
-                  <BookOpen className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-5">
+                  <BookOpen className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl font-serif font-bold text-[#231818]">
-                  Cardápio Digital & Ficha Técnica
+                <h3 className="text-lg font-serif font-bold text-[#231818] leading-snug">
+                  Cardápio Digital
                 </h3>
-                <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
-                  Cadastre brigadeiros, tortas, bentô cakes e trufas com tempo de preparo e preços
-                  definidos para nunca errar a margem de lucro.
+                <p className="text-xs text-[#7C6E68] mt-2 leading-relaxed">
+                  Cadastre doces com fotos e preços. Compartilhe link direto no WhatsApp e Instagram.
                 </p>
               </div>
-
-              <div className="mt-8 pt-6 border-t border-[#EFE8DE] text-xs font-semibold text-[#7C6E68]">
-                <span>Pronto para link no WhatsApp e Instagram</span>
+              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center justify-between text-[11px] font-semibold text-[#D07A6D]">
+                <span>Link WhatsApp</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
               </div>
             </div>
 
-            {/* Bento Card 3: Gestão de Clientes */}
-            <div className="bg-[#FBF8F3] rounded-3xl p-8 border border-[#EFE8DE] shadow-xs flex flex-col justify-between">
+            {/* Card 3: Clientes */}
+            <div className="bg-[#FBF8F3] rounded-3xl p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-6">
-                  <Users className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-5">
+                  <Users className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl font-serif font-bold text-[#231818]">
-                  Histórico de Clientes & Fidelidade
+                <h3 className="text-lg font-serif font-bold text-[#231818] leading-snug">
+                  Gestão de Clientes
                 </h3>
-                <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
-                  Saiba quais doces cada cliente mais pede, datas de aniversário e endereço de
-                  entrega para enviar mimos e mensagens personalizadas.
+                <p className="text-xs text-[#7C6E68] mt-2 leading-relaxed">
+                  Histórico de compras e aniversários para surpreender e fidelizar cada cliente.
                 </p>
               </div>
-
-              <div className="mt-8 pt-6 border-t border-[#EFE8DE] text-xs font-semibold text-[#7C6E68]">
-                <span>Histórico completo de compras</span>
+              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center justify-between text-[11px] font-semibold text-[#D07A6D]">
+                <span>Fidelidade</span>
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
               </div>
             </div>
 
-            {/* Bento Card 4: Faturamento e Finanças (Span 2) */}
-            <div className="md:col-span-2 bg-[#FBF8F3] rounded-3xl p-8 border border-[#EFE8DE] shadow-xs flex flex-col justify-between">
+            {/* Card 4: Financeiro */}
+            <div className="bg-[#FBF8F3] rounded-3xl p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-6">
-                  <BarChart3 className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-5">
+                  <BarChart3 className="w-5 h-5" />
                 </div>
-                <h3 className="text-2xl font-serif font-bold text-[#231818]">
-                  Financeiro Claro, Sem Mistérios
+                <h3 className="text-lg font-serif font-bold text-[#231818] leading-snug">
+                  Métricas & Lucro
                 </h3>
-                <p className="text-sm text-[#7C6E68] mt-2 max-w-lg leading-relaxed">
-                  Acompanhe suas vendas no mês, ticket médio e desempenho diário. Saiba se as vendas
-                  estão subindo e tome decisões com base em números reais da confeitaria.
+                <p className="text-xs text-[#7C6E68] mt-2 leading-relaxed">
+                  Vendas do mês, pedidos e ticket médio atualizados automaticamente sem complicação.
                 </p>
               </div>
-
-              <div className="mt-8 pt-6 border-t border-[#EFE8DE] flex items-center justify-between text-xs font-semibold text-[#2B1D1D]">
-                <span className="text-[#7C6E68]">Métricas automáticas</span>
-                <span className="text-[#4A7C59] font-mono font-bold">Relatórios consolidados</span>
+              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center justify-between text-[11px] font-semibold text-[#4A7C59]">
+                <span>Relatórios</span>
+                <span className="w-2 h-2 rounded-full bg-[#4A7C59]" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. HOW IT WORKS: 3 Steps */}
-      <section id="como-funciona" className="py-24">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="text-center max-w-xl mx-auto mb-16">
+      {/* 4. HOW IT WORKS: Como funciona agora (Cadastro -> Análise -> Senha WhatsApp) */}
+      <section id="como-funciona" className="py-20 bg-[#FBF8F3]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+          <div className="text-center max-w-xl mx-auto mb-14">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#D07A6D]">
-              • Passo a Passo
+              • Passo a Passo Simples
             </span>
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#231818] mt-2 tracking-tight">
-              Como funciona a Comfy na sua rotina
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#231818] mt-2 tracking-tight">
+              Como funciona o acesso à Comfy
             </h2>
-            <p className="text-sm text-[#7C6E68] mt-3">
-              Em menos de 10 minutos sua doceria passa a operar com profissionalismo de ponta.
+            <p className="text-xs sm:text-sm text-[#7C6E68] mt-2">
+              Processo ágil e seguro para você receber seus dados e começar a usar.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-3xl border border-[#EFE8DE] shadow-xs relative">
-              <span className="text-4xl font-serif font-bold text-[#D07A6D]/30 block mb-4">
-                01.
-              </span>
-              <h3 className="text-lg font-serif font-bold text-[#231818]">
-                Cadastre seus doces e preços
-              </h3>
-              <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
-                Adicione suas receitas, opções de caixas, tamanhos de bolos e tempo médio de forno.
-              </p>
+          {/* 3 Steps Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Step 1: Cadastro */}
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-[#EFE8DE] shadow-xs relative flex flex-col justify-between hover:border-[#D07A6D]/40 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl sm:text-4xl font-serif font-bold text-[#D07A6D]">
+                    01.
+                  </span>
+                  <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                    <UserCheck className="w-5 h-5 text-[#D07A6D]" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-serif font-bold text-[#231818]">
+                  Você faz o cadastro da doceria
+                </h3>
+                <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
+                  Preencha o formulário rápido com o nome da sua doceria, seu Gmail e número de WhatsApp.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center gap-2 text-xs font-semibold text-[#7C6E68]">
+                <Check className="w-3.5 h-3.5 text-[#4A7C59]" />
+                <span>Leva menos de 2 minutos</span>
+              </div>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-[#EFE8DE] shadow-xs relative">
-              <span className="text-4xl font-serif font-bold text-[#D07A6D]/30 block mb-4">
-                02.
-              </span>
-              <h3 className="text-lg font-serif font-bold text-[#231818]">
-                Lance encomendas em segundos
-              </h3>
-              <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
-                Quando uma mensagem chegar no WhatsApp, gere o pedido com 2 toques e envie o link de
-                confirmação.
-              </p>
+            {/* Step 2: Análise */}
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-[#EFE8DE] shadow-xs relative flex flex-col justify-between hover:border-[#D07A6D]/40 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl sm:text-4xl font-serif font-bold text-[#D07A6D]">
+                    02.
+                  </span>
+                  <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-amber-600" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-serif font-bold text-[#231818]">
+                  Aguarde a análise da equipe
+                </h3>
+                <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
+                  Nossa equipe analisa as informações e gera uma senha de acesso exclusiva para seu login.
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center gap-2 text-xs font-semibold text-[#7C6E68]">
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                <span>Aprovação rápida e segura</span>
+              </div>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-[#EFE8DE] shadow-xs relative">
-              <span className="text-4xl font-serif font-bold text-[#D07A6D]/30 block mb-4">
-                03.
-              </span>
-              <h3 className="text-lg font-serif font-bold text-[#231818]">
-                Produza sem atrasos e lucre mais
-              </h3>
-              <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
-                Acompanhe o painel de produção diário, despache no horário e veja seu faturamento crescer.
-              </p>
+            {/* Step 3: Senha no WhatsApp */}
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-[#EFE8DE] shadow-xs relative flex flex-col justify-between hover:border-[#D07A6D]/40 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl sm:text-4xl font-serif font-bold text-[#D07A6D]">
+                    03.
+                  </span>
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5 text-emerald-600" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-serif font-bold text-[#231818]">
+                  Receba a senha no WhatsApp
+                </h3>
+                <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
+                  Você recebe a senha direto no seu WhatsApp, entra no painel e já pode cadastrar seus doces e vender!
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center gap-2 text-xs font-semibold text-[#4A7C59]">
+                <Key className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Acesso liberado de imediato</span>
+              </div>
             </div>
+          </div>
+
+          {/* Quick Action Buttons below steps */}
+          <div className="mt-10 text-center flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => setViewMode('register-store')}
+              className="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            >
+              <span>Cadastrar Minha Doceria</span>
+              <ArrowRight className="w-4 h-4 text-[#D07A6D]" />
+            </button>
+            <button
+              onClick={() => setViewMode('login')}
+              className="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center px-5 py-3 rounded-xl bg-white hover:bg-[#EFE8DE]/60 border border-[#EFE8DE] text-xs font-semibold text-[#231818] transition-colors cursor-pointer"
+            >
+              Já tenho cadastro aprovado
+            </button>
           </div>
         </div>
       </section>

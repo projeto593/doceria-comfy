@@ -128,7 +128,7 @@ export const LoginView: React.FC = () => {
       </div>
 
       {/* Main Card Container */}
-      <div className="max-w-md w-full mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-[#EFE8DE] shadow-xl">
+      <div className="max-w-md w-full mx-auto bg-white rounded-3xl p-5 sm:p-8 border border-[#EFE8DE] shadow-xl">
         {!isRecoveryMode ? (
           /* UNIFIED LOGIN VIEW */
           <div>
@@ -169,7 +169,7 @@ export const LoginView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setViewMode('register-store')}
-                    className="mt-1 w-full py-2 px-3 rounded-xl bg-[#2B1D1D] text-white text-xs font-bold transition-colors hover:bg-[#3D2B2B] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                    className="mt-1 w-full py-2.5 px-3 rounded-xl bg-[#2B1D1D] text-white text-xs font-bold transition-colors hover:bg-[#3D2B2B] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs min-h-[42px]"
                   >
                     <span>Cadastrar Minha Doceria Agora</span>
                     <ArrowRight className="w-3.5 h-3.5 text-[#D07A6D]" />
@@ -184,7 +184,7 @@ export const LoginView: React.FC = () => {
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-1 w-full py-2 px-3 rounded-xl bg-emerald-600 text-white text-xs font-bold transition-colors hover:bg-emerald-700 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                    className="mt-1 w-full py-2.5 px-3 rounded-xl bg-emerald-600 text-white text-xs font-bold transition-colors hover:bg-emerald-700 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs min-h-[42px]"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
                     <span>Falar com Suporte no WhatsApp</span>
@@ -205,7 +205,7 @@ export const LoginView: React.FC = () => {
                   placeholder="seuemail@exemplo.com"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full px-4 py-2.5 text-xs sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818]"
+                  className="w-full px-4 py-2.5 sm:py-2.5 text-base sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818] min-h-[46px]"
                 />
               </div>
 
@@ -221,7 +221,7 @@ export const LoginView: React.FC = () => {
                       setIsRecoveryMode(true);
                       setErrorMessage(null);
                     }}
-                    className="text-[11px] text-[#D07A6D] font-semibold hover:underline cursor-pointer"
+                    className="text-[11px] text-[#D07A6D] font-semibold hover:underline cursor-pointer py-1"
                   >
                     Esqueceu a senha?
                   </button>
@@ -233,12 +233,12 @@ export const LoginView: React.FC = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-4 pr-10 py-2.5 text-xs sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818]"
+                    className="w-full pl-4 pr-11 py-2.5 text-base sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818] min-h-[46px]"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7C6E68] hover:text-[#231818] p-1"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[#7C6E68] hover:text-[#231818] p-2 min-w-[36px] min-h-[36px] flex items-center justify-center cursor-pointer"
                     title={showPassword ? 'Ocultar senha' : 'Ver senha'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

@@ -152,18 +152,18 @@ export const RegisterStoreView: React.FC = () => {
       </div>
 
       {/* Main Registration Card */}
-      <div className="max-w-xl w-full mx-auto bg-white rounded-3xl p-8 sm:p-10 border border-[#EFE8DE] shadow-xl">
-        <div className="mb-8">
+      <div className="max-w-xl w-full mx-auto bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 border border-[#EFE8DE] shadow-xl">
+        <div className="mb-6 sm:mb-8">
           <div className="inline-flex items-center gap-2 mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#D07A6D]" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#D07A6D]">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#D07A6D]">
               Cadastro de Nova Doceria
             </span>
           </div>
-          <h1 className="text-3xl font-serif font-bold text-[#231818] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#231818] tracking-tight">
             Comece a organizar sua doceria agora.
           </h1>
-          <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#7C6E68] mt-1.5 leading-relaxed">
             Preencha os dados abaixo para criar o painel exclusivo da sua confeitaria.
           </p>
         </div>
@@ -259,7 +259,7 @@ export const RegisterStoreView: React.FC = () => {
           {/* Action button */}
           <button
             type="submit"
-            className="w-full mt-4 py-3.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full mt-4 py-3.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[48px]"
           >
             <span>Enviar Cadastro para Análise</span>
             <ArrowRight className="w-4 h-4 text-[#D07A6D]" />
@@ -270,10 +270,10 @@ export const RegisterStoreView: React.FC = () => {
           <p className="text-xs text-[#7C6E68]">
             Já possui uma loja cadastrada?{' '}
             <button
-              onClick={() => setViewMode('dashboard')}
+              onClick={() => setViewMode('login')}
               className="text-[#D07A6D] font-bold hover:underline cursor-pointer"
             >
-              Acessar Painel Existente
+              Entrar na sua Conta
             </button>
           </p>
         </div>

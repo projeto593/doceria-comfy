@@ -27,21 +27,22 @@ export const OrdersView: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header & Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif font-bold text-[#231818]">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#231818]">
             Gestão de Pedidos
           </h1>
-          <p className="text-xs text-[#7C6E68] mt-1">
+          <p className="text-xs text-[#7C6E68] mt-0.5">
             Acompanhe a produção das encomendas e despache em tempo hábil.
           </p>
         </div>
 
         <button
           onClick={() => setIsNewOrderModalOpen(true)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors cursor-pointer min-h-[44px] shrink-0"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-[#D07A6D]" />
           <span>+ Novo pedido</span>
         </button>
       </div>
@@ -49,12 +50,12 @@ export const OrdersView: React.FC = () => {
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-[#EFE8DE]">
         {/* Status segmented controls */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 sm:pb-0">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors min-h-[38px] flex items-center ${
               filterStatus === 'all'
-                ? 'bg-[#2B1D1D] text-white'
+                ? 'bg-[#2B1D1D] text-white font-semibold'
                 : 'text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3]'
             }`}
           >
@@ -62,9 +63,9 @@ export const OrdersView: React.FC = () => {
           </button>
           <button
             onClick={() => setFilterStatus('in_production')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors min-h-[38px] flex items-center ${
               filterStatus === 'in_production'
-                ? 'bg-[#D07A6D] text-white'
+                ? 'bg-[#D07A6D] text-white font-semibold'
                 : 'text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3]'
             }`}
           >
@@ -72,9 +73,9 @@ export const OrdersView: React.FC = () => {
           </button>
           <button
             onClick={() => setFilterStatus('ready')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors min-h-[38px] flex items-center ${
               filterStatus === 'ready'
-                ? 'bg-amber-700 text-white'
+                ? 'bg-amber-700 text-white font-semibold'
                 : 'text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3]'
             }`}
           >
@@ -82,9 +83,9 @@ export const OrdersView: React.FC = () => {
           </button>
           <button
             onClick={() => setFilterStatus('delivered')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors min-h-[38px] flex items-center ${
               filterStatus === 'delivered'
-                ? 'bg-emerald-700 text-white'
+                ? 'bg-emerald-700 text-white font-semibold'
                 : 'text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3]'
             }`}
           >
@@ -100,7 +101,7 @@ export const OrdersView: React.FC = () => {
             placeholder="Buscar por cliente ou pedido..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818]"
+            className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818] min-h-[42px]"
           />
         </div>
       </div>
@@ -195,7 +196,7 @@ export const OrdersView: React.FC = () => {
                 </div>
 
                 {/* Footer and Status Change Actions */}
-                <div className="pt-3 border-t border-[#EFE8DE] flex items-center justify-between">
+                <div className="pt-3 border-t border-[#EFE8DE] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <span className="text-[11px] text-[#7C6E68] block">Valor Total</span>
                     <span className="text-base font-serif font-bold text-[#231818] tabular-nums">
@@ -204,11 +205,11 @@ export const OrdersView: React.FC = () => {
                   </div>
 
                   {/* Status Change Buttons */}
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     {order.status === 'in_production' && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'ready')}
-                        className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors"
+                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors min-h-[40px] flex items-center justify-center cursor-pointer"
                       >
                         Pronto p/ Entrega →
                       </button>
@@ -216,14 +217,14 @@ export const OrdersView: React.FC = () => {
                     {order.status === 'ready' && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'delivered')}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors"
+                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors min-h-[40px] flex items-center justify-center cursor-pointer"
                       >
                         Marcar Entregue ✓
                       </button>
                     )}
                     {order.status === 'delivered' && (
-                      <span className="text-xs text-emerald-700 font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5" /> Pedido Concluído
+                      <span className="text-xs text-emerald-700 font-medium flex items-center gap-1.5 py-1">
+                        <CheckCircle className="w-4 h-4" /> Pedido Concluído
                       </span>
                     )}
                   </div>

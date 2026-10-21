@@ -117,85 +117,85 @@ export const CatalogView: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif font-bold text-[#231818]">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#231818]">
             Catálogo de Doces & Produtos
           </h1>
-          <p className="text-xs text-[#7C6E68] mt-1">
+          <p className="text-xs text-[#7C6E68] mt-0.5">
             Gerencie o cardápio, preços unitários e tempo de preparo de cada doce.
           </p>
         </div>
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors cursor-pointer min-h-[44px] shrink-0"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-[#D07A6D]" />
           <span>+ Novo doce no cardápio</span>
         </button>
       </div>
 
       {/* WhatsApp Status & Public Menu Link Banner */}
-      <div className="bg-gradient-to-r from-[#FAF4EB] to-[#FDFBF7] p-5 rounded-2xl border border-[#E8DCCB] shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex items-start gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#D07A6D] text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+      <div className="bg-gradient-to-r from-[#FAF4EB] to-[#FDFBF7] p-4 sm:p-5 rounded-2xl border border-[#E8DCCB] shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#D07A6D] text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
             <Share2 className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#D07A6D]">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#D07A6D]">
                 • Divulgação Rápida
               </span>
-              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
+              <span className="text-[9px] sm:text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">
                 Pronto para postar
               </span>
             </div>
-            <h3 className="text-base font-serif font-bold text-[#231818] mt-0.5">
+            <h3 className="text-sm sm:text-base font-serif font-bold text-[#231818] mt-0.5">
               Link do Cardápio para o Status do WhatsApp & Stories
             </h3>
-            <p className="text-xs text-[#7C6E68] mt-1 max-w-xl">
-              Poste este link no status do WhatsApp para seus clientes visualizarem os doces, montarem
-              a sacola e enviarem o pedido já pronto direto no seu WhatsApp.
+            <p className="text-xs text-[#7C6E68] mt-0.5 max-w-xl">
+              Poste este link no status para seus clientes escolherem os doces e enviarem o pedido pronto no seu WhatsApp.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Link box */}
-          <div className="flex items-center bg-white px-3 py-2 rounded-xl border border-[#E8DCCB] text-xs font-mono text-[#231818] shadow-2xs">
-            <span className="max-w-[180px] sm:max-w-[220px] truncate text-[#7C6E68]">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2">
+          {/* Link box with inline copy button */}
+          <div className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-[#E8DCCB] text-xs font-mono text-[#231818] min-h-[40px]">
+            <span className="max-w-[200px] truncate text-[#7C6E68]">
               {publicMenuUrl}
             </span>
+            <button
+              onClick={handleCopyLink}
+              className="text-[#D07A6D] hover:text-[#2B1D1D] font-bold text-xs pl-2 cursor-pointer flex items-center gap-1"
+            >
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedLink ? 'Copiado!' : 'Copiar'}</span>
+            </button>
           </div>
 
-          {/* Copy Button */}
-          <button
-            onClick={handleCopyLink}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-white hover:bg-[#F8F4EE] text-[#231818] border border-[#E8DCCB] transition-colors shadow-2xs cursor-pointer"
-          >
-            {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-[#D07A6D]" />}
-            <span>{copiedLink ? 'Copiado!' : 'Copiar Link'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Share / Post on Status Modal Trigger */}
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white transition-all shadow-xs cursor-pointer min-h-[42px]"
+            >
+              <MessageCircle className="w-4 h-4 text-[#D07A6D]" />
+              <span>Postar no Status</span>
+            </button>
 
-          {/* Share / Post on Status Modal Trigger */}
-          <button
-            onClick={() => setIsShareModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white transition-all shadow-xs cursor-pointer"
-          >
-            <MessageCircle className="w-4 h-4 text-[#D07A6D]" />
-            <span>Postar no Status</span>
-          </button>
-
-          {/* Preview Public Menu */}
-          <button
-            onClick={() => setViewMode('public-menu')}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-[#D07A6D]/15 hover:bg-[#D07A6D]/25 text-[#D07A6D] transition-colors cursor-pointer"
-            title="Ver como seus clientes veem o cardápio"
-          >
-            <span>Ver Cardápio Público</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </button>
+            {/* Preview Public Menu */}
+            <button
+              onClick={() => setViewMode('public-menu')}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-[#D07A6D]/15 hover:bg-[#D07A6D]/25 text-[#D07A6D] transition-colors cursor-pointer min-h-[42px]"
+              title="Ver como seus clientes veem o cardápio"
+            >
+              <span>Ver Cardápio</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 

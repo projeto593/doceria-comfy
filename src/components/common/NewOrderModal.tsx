@@ -79,28 +79,28 @@ export const NewOrderModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-[#FFFFFF] rounded-2xl shadow-2xl border border-[#EFE8DE] overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="relative w-full max-w-2xl bg-[#FFFFFF] rounded-t-3xl sm:rounded-2xl shadow-2xl border border-[#EFE8DE] overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-[#EFE8DE] flex items-center justify-between bg-[#FBF8F3]">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#EFE8DE] flex items-center justify-between bg-[#FBF8F3]">
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#D07A6D]">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-[#D07A6D]">
               • Nova Encomenda
             </span>
-            <h2 className="text-xl font-serif text-[#231818] font-bold">Criar Novo Pedido</h2>
+            <h2 className="text-lg sm:text-xl font-serif text-[#231818] font-bold">Criar Novo Pedido</h2>
           </div>
           <button
             onClick={() => setIsNewOrderModalOpen(false)}
-            className="p-2 text-[#7C6E68] hover:text-[#231818] hover:bg-[#EFE8DE]/50 rounded-xl transition-colors"
+            className="p-2 text-[#7C6E68] hover:text-[#231818] hover:bg-[#EFE8DE]/50 rounded-xl transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Scrollable Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto">
           {/* Cliente */}
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <label className="text-xs font-semibold uppercase tracking-wider text-[#7C6E68] flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-[#D07A6D]" /> Dados do Cliente
             </label>
@@ -112,7 +112,7 @@ export const NewOrderModal: React.FC = () => {
                   placeholder="Nome do cliente (ex: Ana Martins)"
                   value={customerName}
                   onChange={(e) => handleSelectCustomer(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] focus:ring-1 focus:ring-[#D07A6D] text-[#231818]"
+                  className="w-full px-3.5 py-2.5 text-base sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818] min-h-[44px]"
                 />
                 {/* Quick autocomplete chips */}
                 <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-xs text-[#7C6E68]">
@@ -122,7 +122,7 @@ export const NewOrderModal: React.FC = () => {
                       key={c.id}
                       type="button"
                       onClick={() => handleSelectCustomer(c.name)}
-                      className="px-2 py-0.5 rounded-lg bg-[#F8F4EE] hover:bg-[#EFE8DE] text-[11px] font-medium text-[#231818] transition-colors shrink-0"
+                      className="px-2.5 py-1 rounded-lg bg-[#F8F4EE] hover:bg-[#EFE8DE] text-[11px] font-medium text-[#231818] transition-colors shrink-0 min-h-[30px] flex items-center cursor-pointer"
                     >
                       {c.name}
                     </button>
@@ -292,18 +292,18 @@ export const NewOrderModal: React.FC = () => {
           </div>
 
           {/* Actions */}
-          <div className="pt-2 flex items-center justify-end gap-3 border-t border-[#EFE8DE]">
+          <div className="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 border-t border-[#EFE8DE]">
             <button
               type="button"
               onClick={() => setIsNewOrderModalOpen(false)}
-              className="px-4 py-2.5 text-sm font-medium text-[#7C6E68] hover:text-[#231818] transition-colors"
+              className="w-full sm:w-auto px-4 py-2.5 text-xs sm:text-sm font-medium text-[#7C6E68] hover:text-[#231818] transition-colors rounded-xl min-h-[44px] flex items-center justify-center cursor-pointer order-2 sm:order-1"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={totalCalculated === 0 || !customerName.trim()}
-              className="px-6 py-2.5 text-sm font-semibold text-white bg-[#2B1D1D] hover:bg-[#3E2C2C] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-sm"
+              className="w-full sm:w-auto px-6 py-3 text-xs sm:text-sm font-semibold text-white bg-[#2B1D1D] hover:bg-[#3E2C2C] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-sm min-h-[48px] flex items-center justify-center cursor-pointer order-1 sm:order-2"
             >
               Confirmar Pedido (R$ {totalCalculated.toFixed(2).replace('.', ',')})
             </button>

@@ -32,15 +32,15 @@ export const OverviewView: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Section: Kicker, Greeting & Action Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 mb-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[#D07A6D]" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#D07A6D]">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#D07A6D]">
               Resumo da Operação
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#231818] tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#231818] tracking-tight">
             Bom dia, {firstName} <span className="text-[#D07A6D] font-normal">✦</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#7C6E68] mt-0.5 font-normal">
@@ -50,9 +50,9 @@ export const OverviewView: React.FC = () => {
 
         <button
           onClick={() => setIsNewOrderModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs hover:shadow-md cursor-pointer shrink-0"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer min-h-[44px] shrink-0"
         >
-          <Plus className="w-4 h-4 text-white" />
+          <Plus className="w-4 h-4 text-[#D07A6D]" />
           <span>+ Novo pedido</span>
         </button>
       </div>
@@ -182,7 +182,7 @@ export const OverviewView: React.FC = () => {
 
             {/* Selected day summary line */}
             {selectedDayIndex !== null && (
-              <div className="mt-3.5 pt-2.5 border-t border-[#EFE8DE] flex items-center justify-between text-xs text-[#7C6E68]">
+              <div className="mt-3.5 pt-2.5 border-t border-[#EFE8DE] flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-[#7C6E68]">
                 <span>
                   {salesWeek[selectedDayIndex].fullName}:{' '}
                   <strong className="text-[#231818]">
