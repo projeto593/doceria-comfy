@@ -142,12 +142,12 @@ export const LandingPage: React.FC = () => {
             {/* Right Perspective Mockup Column (6 cols) */}
             <div className="lg:col-span-6 relative mt-4 lg:mt-0">
               {/* Floating growth badge - safely positioned inside viewport */}
-              <div className="absolute left-2 sm:-left-6 bottom-3 sm:bottom-12 z-20 bg-white/95 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl shadow-xl border border-[#EFE8DE] flex items-center gap-2.5 sm:gap-3">
+              <div className="absolute left-3 lg:-left-6 bottom-3 sm:bottom-10 z-20 bg-white/95 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl shadow-xl border border-[#EFE8DE] flex items-center gap-2.5 sm:gap-3">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center font-bold">
                   <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div>
-                  <span className="text-sm sm:text-base font-serif font-bold text-[#231818] block leading-tight">
+                  <span className="text-sm sm:text-base font-serif font-bold text-[#231818] block leading-tight tabular-nums">
                     +32%
                   </span>
                   <span className="text-[10px] sm:text-xs text-[#7C6E68]">de crescimento médio</span>
@@ -231,96 +231,96 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. FEATURES: Recursos da Doceria Lado a Lado & Resumidos */}
-      <section id="recursos" className="py-20 bg-white border-y border-[#EFE8DE]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
-          <div className="max-w-2xl mb-12">
+      {/* 3. FEATURES: Recursos da Doceria Lado a Lado (2x2 no celular/tablet e 4 no PC) */}
+      <section id="recursos" className="py-12 sm:py-20 bg-white border-y border-[#EFE8DE]">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-12">
+          <div className="max-w-2xl mb-8 sm:mb-12">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#D07A6D]">
               • Recursos Feitos para Confeitaria
             </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#231818] mt-2 tracking-tight">
               Tudo o que sua doceria precisa, sem complicações.
             </h2>
-            <p className="text-sm sm:text-base text-[#7C6E68] mt-2">
+            <p className="text-xs sm:text-base text-[#7C6E68] mt-2">
               Praticidade total para você focar no que mais ama: fazer doces incríveis.
             </p>
           </div>
 
-          {/* 4 Cards Side by Side (1 col mobile, 2 cols tablet, 4 cols desktop) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* 4 Cards: 2 em cima + 2 embaixo no celular/tablet, 4 lado a lado no PC */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {/* Card 1: Encomendas */}
-            <div className="bg-[#FBF8F3] rounded-3xl p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
+            <div className="min-w-0 bg-[#FBF8F3] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-11 h-11 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-5">
-                  <ShoppingBag className="w-5 h-5" />
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-3 sm:mb-5">
+                  <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="text-lg font-serif font-bold text-[#231818] leading-snug">
+                <h3 className="text-sm sm:text-lg font-serif font-bold text-[#231818] leading-snug">
                   Controle de Encomendas
                 </h3>
-                <p className="text-xs text-[#7C6E68] mt-2 leading-relaxed">
-                  Fluxo de pedidos: do WhatsApp à produção e entrega com status em tempo real.
+                <p className="text-[11px] sm:text-xs text-[#7C6E68] mt-1.5 sm:mt-2 leading-relaxed">
+                  Fluxo organizado do WhatsApp à produção e entrega. Saiba exatamente o que assar a cada dia.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center justify-between text-[11px] font-semibold text-[#D07A6D]">
-                <span>Status em tempo real</span>
-                <span className="w-2 h-2 rounded-full bg-[#4A7C59]" />
+              <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#EFE8DE] flex items-center justify-between gap-1.5 text-[10px] sm:text-[11px] font-semibold text-[#D07A6D]">
+                <span className="truncate">Status em tempo real</span>
+                <span className="w-2 h-2 rounded-full bg-[#4A7C59] shrink-0" />
               </div>
             </div>
 
             {/* Card 2: Cardápio */}
-            <div className="bg-[#FBF8F3] rounded-3xl p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
+            <div className="min-w-0 bg-[#FBF8F3] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-11 h-11 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-5">
-                  <BookOpen className="w-5 h-5" />
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-3 sm:mb-5">
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="text-lg font-serif font-bold text-[#231818] leading-snug">
+                <h3 className="text-sm sm:text-lg font-serif font-bold text-[#231818] leading-snug">
                   Cardápio Digital
                 </h3>
-                <p className="text-xs text-[#7C6E68] mt-2 leading-relaxed">
-                  Cadastre doces com fotos e preços. Compartilhe link direto no WhatsApp e Instagram.
+                <p className="text-[11px] sm:text-xs text-[#7C6E68] mt-1.5 sm:mt-2 leading-relaxed">
+                  Vitrine com fotos, descrições e preços. Compartilhe o link direto no WhatsApp e Instagram.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center justify-between text-[11px] font-semibold text-[#D07A6D]">
-                <span>Link WhatsApp</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#EFE8DE] flex items-center justify-between gap-1.5 text-[10px] sm:text-[11px] font-semibold text-[#D07A6D]">
+                <span className="truncate">Link para WhatsApp</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
               </div>
             </div>
 
             {/* Card 3: Clientes */}
-            <div className="bg-[#FBF8F3] rounded-3xl p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
+            <div className="min-w-0 bg-[#FBF8F3] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-11 h-11 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-5">
-                  <Users className="w-5 h-5" />
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-3 sm:mb-5">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="text-lg font-serif font-bold text-[#231818] leading-snug">
+                <h3 className="text-sm sm:text-lg font-serif font-bold text-[#231818] leading-snug">
                   Gestão de Clientes
                 </h3>
-                <p className="text-xs text-[#7C6E68] mt-2 leading-relaxed">
-                  Histórico de compras e aniversários para surpreender e fidelizar cada cliente.
+                <p className="text-[11px] sm:text-xs text-[#7C6E68] mt-1.5 sm:mt-2 leading-relaxed">
+                  Histórico de pedidos, preferências e contatos organizados para fidelizar quem compra seus doces.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center justify-between text-[11px] font-semibold text-[#D07A6D]">
-                <span>Fidelidade</span>
-                <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#EFE8DE] flex items-center justify-between gap-1.5 text-[10px] sm:text-[11px] font-semibold text-[#D07A6D]">
+                <span className="truncate">Fidelização ativa</span>
+                <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
               </div>
             </div>
 
             {/* Card 4: Financeiro */}
-            <div className="bg-[#FBF8F3] rounded-3xl p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
+            <div className="min-w-0 bg-[#FBF8F3] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between">
               <div>
-                <div className="w-11 h-11 rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-5">
-                  <BarChart3 className="w-5 h-5" />
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-[#D07A6D]/15 text-[#D07A6D] flex items-center justify-center mb-3 sm:mb-5">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <h3 className="text-lg font-serif font-bold text-[#231818] leading-snug">
+                <h3 className="text-sm sm:text-lg font-serif font-bold text-[#231818] leading-snug">
                   Métricas & Lucro
                 </h3>
-                <p className="text-xs text-[#7C6E68] mt-2 leading-relaxed">
-                  Vendas do mês, pedidos e ticket médio atualizados automaticamente sem complicação.
+                <p className="text-[11px] sm:text-xs text-[#7C6E68] mt-1.5 sm:mt-2 leading-relaxed">
+                  Acompanhe faturamento do mês, ticket médio e doces mais vendidos sem planilhas complexas.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-[#EFE8DE] flex items-center justify-between text-[11px] font-semibold text-[#4A7C59]">
-                <span>Relatórios</span>
-                <span className="w-2 h-2 rounded-full bg-[#4A7C59]" />
+              <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#EFE8DE] flex items-center justify-between gap-1.5 text-[10px] sm:text-[11px] font-semibold text-[#4A7C59]">
+                <span className="truncate">Visão financeira clara</span>
+                <span className="w-2 h-2 rounded-full bg-[#4A7C59] shrink-0" />
               </div>
             </div>
           </div>
@@ -471,20 +471,21 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* 6. FOOTER */}
-      <footer className="py-16 bg-[#F8F4EE] border-t border-[#EFE8DE]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div>
+      <footer className="py-12 sm:py-16 bg-[#F8F4EE] border-t border-[#EFE8DE]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8 text-center md:text-left">
+          <div className="flex flex-col items-center md:items-start">
             <Logo variant="dark" size="md" />
             <p className="text-xs text-[#7C6E68] mt-2">
               A plataforma inteligente para docerias e confeitarias artesanais.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-xs text-[#7C6E68]">
+          <div className="flex flex-wrap items-center justify-center gap-5 sm:gap-6 text-xs text-[#7C6E68]">
             <a href="#recursos" className="hover:text-[#231818]">Recursos</a>
             <a href="#como-funciona" className="hover:text-[#231818]">Como funciona</a>
             <a href="#contato" className="hover:text-[#231818]">Contato</a>
             <button
+              type="button"
               onClick={() => setViewMode('login')}
               className="text-[#D07A6D] font-semibold hover:underline cursor-pointer"
             >

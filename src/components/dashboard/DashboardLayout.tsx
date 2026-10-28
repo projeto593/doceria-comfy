@@ -14,7 +14,6 @@ import {
   Users,
   BarChart3,
   Settings,
-  ArrowLeftRight,
   ExternalLink,
   Menu,
   X,
@@ -29,24 +28,36 @@ export const DashboardLayout: React.FC = () => {
     setViewMode,
     pendingOrdersCount,
     storeProfile,
-    stores,
     currentStore,
-    switchStore,
     logout,
   } = useComfy();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [storeSwitcherOpen, setStoreSwitcherOpen] = useState(false);
 
-  const navItems = [
-    { id: 'visao-geral' as DashboardTab, label: 'Visão geral', icon: LayoutDashboard },
-    { id: 'catalogo' as DashboardTab, label: 'Catálogo', icon: BookOpen },
-    { id: 'pedidos' as DashboardTab, label: 'Pedidos', icon: ShoppingBag, badge: pendingOrdersCount },
-    { id: 'clientes' as DashboardTab, label: 'Clientes', icon: Users },
-    { id: 'relatorios' as DashboardTab, label: 'Relatórios', icon: BarChart3 },
+  const navItems: {
+    id: DashboardTab;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: number;
+  }[] = [
+    { id: 'visao-geral', label: 'Visão geral', icon: LayoutDashboard },
+    { id: 'catalogo', label: 'Catálogo', icon: BookOpen },
+    { id: 'pedidos', label: 'Pedidos', icon: ShoppingBag, badge: pendingOrdersCount },
+    { id: 'clientes', label: 'Clientes', icon: Users },
+    { id: 'relatorios', label: 'Relatórios', icon: BarChart3 },
   ];
 
-  // Mobile Bottom Bar Navigation items (top 4 + More)
+  const tabletTabs: {
+    id: DashboardTab;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: number;
+  }[] = [
+    ...navItems,
+    { id: 'preferencias', label: 'Preferências', icon: Settings },
+  ];
+
+  // Mobile Bottom Bar Navigation items (top 4 + Mais)
   const mobileNavTabs = [
     { id: 'visao-geral' as DashboardTab, label: 'Início', icon: LayoutDashboard },
     { id: 'pedidos' as DashboardTab, label: 'Pedidos', icon: ShoppingBag, badge: pendingOrdersCount },
@@ -57,7 +68,7 @@ export const DashboardLayout: React.FC = () => {
   const renderActiveView = () => {
     if (currentStore.status === 'blocked') {
       return (
-        <div className="bg-white rounded-3xl p-6 sm:p-12 border border-red-200 shadow-sm max-w-2xl mx-auto text-center space-y-4 my-8">
+        <div className="bg-white rounded-3xl p-6 sm:p-10 lg:p-12 border border-red-200 shadow-sm max-w-2xl mx-auto text-center space-y-4 my-6 sm:my-8">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-red-100 text-red-600 flex items-center justify-center mx-auto text-2xl">
             🔒
           </div>
@@ -68,8 +79,8 @@ export const DashboardLayout: React.FC = () => {
             Loja Temporariamente Bloqueada
           </h2>
           <p className="text-xs sm:text-sm text-[#7C6E68] leading-relaxed max-w-lg mx-auto">
-            O acesso às funções da doceria <strong>{currentStore.name}</strong> foi bloqueado pela
-            administração da plataforma Comfy.
+            O acesso às funções da doceria <strong>{currentStore.name}</strong> foi suspenso
+            temporariamente pela administração da plataforma Comfy.
             {currentStore.blockReason && (
               <span className="block mt-2 font-medium text-red-700">
                 Motivo: {currentStore.blockReason}
@@ -78,14 +89,17 @@ export const DashboardLayout: React.FC = () => {
           </p>
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
-              onClick={() => setViewMode('super-admin')}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-semibold min-h-[44px]"
+              type="button"
+              onClick={logout}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-semibold min-h-[44px] cursor-pointer"
             >
-              Abrir Super Admin p/ Desbloquear
+              <LogOut className="w-3.5 h-3.5 text-[#D07A6D]" />
+              <span>Sair da Conta</span>
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('landing')}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#F8F4EE] hover:bg-[#EFE8DE] text-[#231818] text-xs font-semibold min-h-[44px]"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#F8F4EE] hover:bg-[#EFE8DE] text-[#231818] text-xs font-semibold min-h-[44px] cursor-pointer"
             >
               Voltar ao Site
             </button>
@@ -129,60 +143,107 @@ export const DashboardLayout: React.FC = () => {
     }
   };
 
+  const ownerInitial = (storeProfile.ownerName || 'C').trim().charAt(0).toUpperCase();
+
   return (
-    <div className="min-h-screen bg-[#FBF8F3] text-[#231818] flex flex-col md:flex-row antialiased">
-      {/* Mobile Top Bar */}
-      <div className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-[#261A1A] text-white border-b border-white/10 shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <Logo variant="light" size="sm" onClick={() => setViewMode('landing')} />
-          <div className="h-4 w-px bg-white/20" />
-          <span className="text-xs font-semibold text-white/90 truncate max-w-[140px]">
-            {storeProfile.name}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Quick store switcher button */}
+    <div className="min-h-screen bg-[#FBF8F3] text-[#231818] flex flex-col lg:flex-row antialiased">
+      {/* Top Bar for Mobile & Tablet (< 1024px) */}
+      <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-3.5 sm:px-6 py-3 bg-[#261A1A] text-white border-b border-white/10 shadow-sm gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
-            onClick={() => setStoreSwitcherOpen(!storeSwitcherOpen)}
-            className="w-8 h-8 rounded-full bg-[#E5B5AC] text-[#2B1D1D] flex items-center justify-center font-bold text-xs cursor-pointer"
-            title="Trocar loja"
-          >
-            {storeProfile.ownerName.charAt(0)}
-          </button>
-
-          {/* Drawer menu trigger */}
-          <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-white/80 hover:text-white rounded-lg hover:bg-white/10 min-w-[40px] min-h-[40px] flex items-center justify-center cursor-pointer"
+            className="p-2 -ml-1 text-white/85 hover:text-white rounded-xl hover:bg-white/10 min-w-[40px] min-h-[40px] flex items-center justify-center cursor-pointer shrink-0"
             aria-label="Abrir menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
+
+          <Logo variant="light" size="sm" onClick={() => setViewMode('landing')} />
+
+          <div className="h-4 w-px bg-white/20 hidden xs:block sm:block shrink-0" />
+          <span className="text-xs font-semibold text-white/90 truncate max-w-[120px] sm:max-w-[220px]">
+            {storeProfile.name}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="hidden sm:flex items-center gap-2 pr-1">
+            <div className="w-7 h-7 rounded-full bg-[#E5B5AC] text-[#2B1D1D] flex items-center justify-center font-bold text-xs select-none shrink-0">
+              {ownerInitial}
+            </div>
+            <span className="text-xs text-white/85 font-medium max-w-[130px] truncate">
+              {storeProfile.ownerName}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={logout}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-red-500/25 border border-white/15 hover:border-red-400/40 text-white hover:text-red-100 text-xs font-semibold transition-colors cursor-pointer min-h-[38px] whitespace-nowrap shrink-0"
+            title="Sair da conta"
+          >
+            <LogOut className="w-3.5 h-3.5 text-[#E5B5AC]" />
+            <span>Sair</span>
+          </button>
         </div>
       </div>
 
-      {/* Backdrop overlay for mobile drawer */}
+      {/* Tablet Horizontal Navigation Strip (640px – 1023px) */}
+      <div className="hidden sm:block lg:hidden sticky top-[65px] z-20 bg-white/95 backdrop-blur-md border-b border-[#EFE8DE] px-6 py-2">
+        <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5">
+            {tabletTabs.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveTab(item.id)}
+                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer min-h-[40px] shrink-0 ${
+                    isActive
+                      ? 'bg-[#2B1D1D] text-white font-semibold shadow-2xs'
+                      : 'text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3]'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#D07A6D]' : 'text-[#7C6E68]'}`} />
+                  <span>{item.label}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-[#D07A6D] text-white text-[10px] font-bold leading-none tabular-nums">
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Backdrop overlay for mobile & tablet drawer */}
       {mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-xs transition-opacity"
         />
       )}
 
-      {/* Sidebar (Desktop sticky + Mobile slide-over drawer) */}
+      {/* Sidebar (Desktop >= 1024px sticky + Mobile/Tablet slide-over drawer) */}
       <aside
-        className={`fixed md:sticky top-0 z-50 md:z-40 h-screen w-72 md:w-64 bg-[#261A1A] text-white flex flex-col justify-between p-6 transition-transform duration-300 shadow-2xl md:shadow-none ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        className={`fixed lg:sticky top-0 left-0 z-50 lg:z-30 h-dvh w-72 lg:w-60 xl:w-64 bg-[#261A1A] text-white flex flex-col justify-between p-5 xl:p-6 overflow-y-auto transition-transform duration-300 shadow-2xl lg:shadow-none shrink-0 ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="space-y-6">
-          {/* Header with Logo and Close on Mobile */}
+          {/* Header with Logo and Close on Mobile/Tablet */}
           <div className="flex items-center justify-between pt-1">
             <Logo variant="light" size="md" onClick={() => setViewMode('landing')} />
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(false)}
-              className="md:hidden p-1.5 text-white/60 hover:text-white rounded-lg cursor-pointer"
+              className="lg:hidden p-1.5 text-white/60 hover:text-white rounded-lg cursor-pointer"
+              aria-label="Fechar menu"
             >
               <X className="w-5 h-5" />
             </button>
@@ -190,7 +251,9 @@ export const DashboardLayout: React.FC = () => {
 
           {/* Current Store Badge */}
           <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-            <p className="text-[10px] text-[#A3928E] uppercase font-bold tracking-wider">Doceria Ativa</p>
+            <p className="text-[10px] text-[#A3928E] uppercase font-bold tracking-wider">
+              Doceria Ativa
+            </p>
             <p className="text-sm font-bold text-white truncate mt-0.5">{storeProfile.name}</p>
             <p className="text-xs text-[#C9BCB8] truncate">{storeProfile.ownerName}</p>
           </div>
@@ -207,27 +270,28 @@ export const DashboardLayout: React.FC = () => {
                 return (
                   <button
                     key={item.id}
+                    type="button"
                     onClick={() => {
                       setActiveTab(item.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3.5 py-3 md:py-2.5 rounded-xl text-xs sm:text-xs font-medium transition-all cursor-pointer min-h-[44px] ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer min-h-[42px] ${
                       isActive
                         ? 'bg-[#3A2828] text-white shadow-xs font-semibold'
                         : 'text-[#C9BCB8] hover:text-white hover:bg-[#322323]'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <Icon
-                        className={`w-4 h-4 ${
+                        className={`w-4 h-4 shrink-0 ${
                           isActive ? 'text-[#D07A6D]' : 'text-[#A3928E]'
                         }`}
                       />
-                      <span>{item.label}</span>
+                      <span className="truncate">{item.label}</span>
                     </div>
 
                     {item.badge !== undefined && item.badge > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-[#D07A6D] text-white text-[10px] font-bold flex items-center justify-center">
+                      <span className="w-5 h-5 rounded-full bg-[#D07A6D] text-white text-[10px] font-bold flex items-center justify-center shrink-0 tabular-nums">
                         {item.badge}
                       </span>
                     )}
@@ -244,175 +308,111 @@ export const DashboardLayout: React.FC = () => {
             </span>
             <nav className="space-y-1">
               <button
+                type="button"
                 onClick={() => {
                   setActiveTab('preferencias');
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-3.5 py-3 md:py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer min-h-[44px] ${
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer min-h-[42px] ${
                   activeTab === 'preferencias'
                     ? 'bg-[#3A2828] text-white shadow-xs font-semibold'
                     : 'text-[#C9BCB8] hover:text-white hover:bg-[#322323]'
                 }`}
               >
                 <Settings
-                  className={`w-4 h-4 ${
+                  className={`w-4 h-4 shrink-0 ${
                     activeTab === 'preferencias' ? 'text-[#D07A6D]' : 'text-[#A3928E]'
                   }`}
                 />
-                <span>Preferências</span>
+                <span className="truncate">Preferências</span>
               </button>
             </nav>
           </div>
         </div>
 
         {/* Sidebar Footer Link to Landing Page & Logout */}
-        <div className="pt-4 border-t border-white/10 space-y-2">
+        <div className="pt-4 mt-6 border-t border-white/10 space-y-2">
           <button
+            type="button"
             onClick={() => {
               setMobileMenuOpen(false);
               setViewMode('landing');
             }}
-            className="w-full flex items-center justify-between p-3 md:p-2.5 rounded-xl bg-[#322323] hover:bg-[#3E2C2C] text-[#C9BCB8] hover:text-white text-xs transition-colors cursor-pointer min-h-[44px]"
+            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[#322323] hover:bg-[#3E2C2C] text-[#C9BCB8] hover:text-white text-xs transition-colors cursor-pointer min-h-[42px]"
           >
-            <span className="font-medium">← Ver Site Institucional</span>
-            <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+            <span className="font-medium truncate">← Ver Site Institucional</span>
+            <ExternalLink className="w-3.5 h-3.5 opacity-60 shrink-0" />
           </button>
 
           <button
+            type="button"
             onClick={() => {
               setMobileMenuOpen(false);
               logout();
             }}
-            className="w-full flex items-center justify-between p-3 md:p-2.5 rounded-xl bg-red-950/30 hover:bg-red-950/60 border border-red-500/20 text-red-300 hover:text-red-100 text-xs transition-colors cursor-pointer min-h-[44px]"
+            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-red-950/30 hover:bg-red-950/60 border border-red-500/20 text-red-300 hover:text-red-100 text-xs transition-colors cursor-pointer min-h-[42px]"
           >
             <span className="font-medium">Sair da Conta</span>
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-3.5 h-3.5 shrink-0" />
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0">
-        {/* Top Header of Main Area (Desktop) */}
-        <header className="px-4 sm:px-6 md:px-10 py-4 sm:py-6 border-b border-[#EFE8DE] bg-[#FBF8F3] flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[11px] sm:text-xs text-[#7C6E68]">
-              {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+        {/* Top Header of Main Area (Desktop >= 1024px) */}
+        <header className="hidden lg:flex px-8 xl:px-10 py-5 border-b border-[#EFE8DE] bg-[#FBF8F3] items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs text-[#7C6E68] capitalize">
+              {new Date().toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              })}
             </p>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#231818] tracking-tight">
+            <h2 className="text-2xl xl:text-3xl font-serif font-bold text-[#231818] tracking-tight truncate">
               {getSectionTitle()}
-            </h1>
+            </h2>
           </div>
 
-          {/* User profile and store switcher on top right */}
-          <div className="relative flex items-center gap-2 sm:gap-3">
-            <div
-              onClick={() => setStoreSwitcherOpen(!storeSwitcherOpen)}
-              className="flex items-center gap-2 sm:gap-2.5 p-1.5 rounded-xl hover:bg-[#EFE8DE]/60 transition-colors cursor-pointer min-h-[44px]"
-            >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E5B5AC] text-[#2B1D1D] flex items-center justify-center font-bold text-xs select-none shrink-0">
-                {storeProfile.ownerName.charAt(0)}
+          {/* Store Profile Info + Direct Logout Button ONLY */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white border border-[#EFE8DE]">
+              <div className="w-8 h-8 rounded-full bg-[#E5B5AC] text-[#2B1D1D] flex items-center justify-center font-bold text-xs select-none shrink-0">
+                {ownerInitial}
               </div>
 
-              <div className="hidden sm:block text-left">
-                <p className="text-xs font-bold text-[#231818] leading-tight">
+              <div className="text-left max-w-[180px]">
+                <p className="text-xs font-bold text-[#231818] leading-tight truncate">
                   {storeProfile.name}
                 </p>
-                <p className="text-[10px] text-[#7C6E68]">
-                  {storeProfile.ownerName} · {currentStore.status === 'blocked' ? 'Bloqueada' : 'Ativa'}
+                <p className="text-[10px] text-[#7C6E68] truncate">
+                  {storeProfile.ownerName} ·{' '}
+                  {currentStore.status === 'blocked' ? 'Bloqueada' : 'Ativa'}
                 </p>
               </div>
-
-              <ArrowLeftRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-[#7C6E68]" />
             </div>
 
-            {/* Store Switcher Dropdown */}
-            {storeSwitcherOpen && (
-              <div className="absolute right-0 top-12 sm:top-14 z-50 w-72 bg-white rounded-2xl shadow-xl border border-[#EFE8DE] p-3 space-y-2 animate-in fade-in duration-200">
-                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#7C6E68] border-b border-[#EFE8DE]">
-                  Trocar de Loja
-                </div>
-
-                <div className="max-h-48 overflow-y-auto space-y-1">
-                  {stores.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => {
-                        switchStore(s.id);
-                        setStoreSwitcherOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between p-2 rounded-xl text-xs transition-colors cursor-pointer min-h-[40px] ${
-                        s.id === currentStore.id
-                          ? 'bg-[#F8F4EE] font-bold text-[#231818]'
-                          : 'hover:bg-[#FBF8F3] text-[#7C6E68]'
-                      }`}
-                    >
-                      <div className="text-left truncate max-w-[170px]">
-                        <p className="truncate text-xs font-semibold">{s.name}</p>
-                        <p className="text-[10px] text-[#7C6E68] truncate">{s.ownerName}</p>
-                      </div>
-
-                      <span
-                        className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold ${
-                          s.status === 'blocked'
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}
-                      >
-                        {s.status === 'blocked' ? 'Bloqueada' : 'Ativa'}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="pt-2 border-t border-[#EFE8DE] space-y-1">
-                  <button
-                    onClick={() => {
-                      setStoreSwitcherOpen(false);
-                      setViewMode('register-store');
-                    }}
-                    className="w-full text-left px-2 py-2 rounded-lg text-xs font-semibold text-[#D07A6D] hover:bg-[#D07A6D]/10 transition-colors cursor-pointer min-h-[38px] flex items-center"
-                  >
-                    + Cadastrar Nova Loja
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setStoreSwitcherOpen(false);
-                      setViewMode('super-admin');
-                    }}
-                    className="w-full text-left px-2 py-2 rounded-lg text-xs font-bold text-[#2B1D1D] hover:bg-[#2B1D1D]/5 transition-colors cursor-pointer flex items-center justify-between min-h-[38px]"
-                  >
-                    <span>👑 Painel Super Admin</span>
-                    <span className="text-[10px] bg-[#2B1D1D] text-white px-1.5 py-0.2 rounded-md">
-                      Gerenciar
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setStoreSwitcherOpen(false);
-                      logout();
-                    }}
-                    className="w-full text-left px-2 py-2 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer flex items-center justify-between min-h-[38px]"
-                  >
-                    <span>Sair da Conta (Logout)</span>
-                    <LogOut className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={logout}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-red-50 text-[#231818] hover:text-red-600 border border-[#EFE8DE] hover:border-red-200 text-xs font-semibold transition-colors cursor-pointer min-h-[42px] whitespace-nowrap shrink-0"
+              title="Sair da conta"
+            >
+              <LogOut className="w-3.5 h-3.5 text-[#D07A6D]" />
+              <span>Sair</span>
+            </button>
           </div>
         </header>
 
-        {/* Inner Content View with safe bottom padding for mobile navigation */}
-        <div className="px-3.5 py-4 sm:p-6 lg:p-8 pb-24 md:pb-8 max-w-7xl w-full mx-auto flex-1">
+        {/* Inner Content View */}
+        <div className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8 xl:px-10 lg:py-8 pb-24 sm:pb-8 max-w-7xl w-full mx-auto flex-1 min-w-0">
           {renderActiveView()}
         </div>
       </main>
 
-      {/* Fixed Bottom Navigation Bar for Mobile Phones */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EFE8DE] px-2 py-1 shadow-lg pb-safe">
+      {/* Fixed Bottom Navigation Bar for Mobile Phones (< 640px) */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#EFE8DE] px-1.5 py-1 shadow-lg">
         <div className="grid grid-cols-5 items-center">
           {mobileNavTabs.map((item) => {
             const Icon = item.icon;
@@ -420,6 +420,7 @@ export const DashboardLayout: React.FC = () => {
             return (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => setActiveTab(item.id)}
                 className={`relative flex flex-col items-center justify-center py-1.5 min-h-[50px] transition-colors cursor-pointer ${
                   isActive ? 'text-[#D07A6D]' : 'text-[#7C6E68]'
@@ -428,12 +429,16 @@ export const DashboardLayout: React.FC = () => {
                 <div className="relative">
                   <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
                   {item.badge !== undefined && item.badge > 0 && (
-                    <span className="absolute -top-1 -right-2.5 w-4 h-4 rounded-full bg-[#D07A6D] text-white text-[9px] font-bold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-2.5 w-4 h-4 rounded-full bg-[#D07A6D] text-white text-[9px] font-bold flex items-center justify-center tabular-nums">
                       {item.badge}
                     </span>
                   )}
                 </div>
-                <span className={`text-[10px] mt-0.5 tracking-tight ${isActive ? 'font-bold text-[#231818]' : 'font-medium'}`}>
+                <span
+                  className={`text-[10px] mt-0.5 tracking-tight truncate max-w-full px-0.5 ${
+                    isActive ? 'font-bold text-[#231818]' : 'font-medium'
+                  }`}
+                >
                   {item.label}
                 </span>
               </button>
@@ -442,9 +447,12 @@ export const DashboardLayout: React.FC = () => {
 
           {/* 5th Tab: Menu drawer trigger */}
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(true)}
             className={`flex flex-col items-center justify-center py-1.5 min-h-[50px] transition-colors cursor-pointer ${
-              activeTab === 'preferencias' || activeTab === 'relatorios' ? 'text-[#D07A6D]' : 'text-[#7C6E68]'
+              activeTab === 'preferencias' || activeTab === 'relatorios'
+                ? 'text-[#D07A6D]'
+                : 'text-[#7C6E68]'
             }`}
           >
             <MoreHorizontal className="w-5 h-5 stroke-2" />

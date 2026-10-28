@@ -135,11 +135,19 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const currentStore = stores.find((s) => s.id === currentStoreId) || stores[0] || initialStores[0];
 
   useEffect(() => {
-    localStorage.setItem('comfy_stores', JSON.stringify(stores));
+    try {
+      localStorage.setItem('comfy_stores', JSON.stringify(stores));
+    } catch {
+      // Ignore quota errors
+    }
   }, [stores]);
 
   useEffect(() => {
-    localStorage.setItem('comfy_current_store_id', currentStoreId);
+    try {
+      localStorage.setItem('comfy_current_store_id', currentStoreId);
+    } catch {
+      // Ignore quota errors
+    }
   }, [currentStoreId]);
 
   const addStore = (
@@ -413,19 +421,35 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Sync with localStorage
   useEffect(() => {
-    localStorage.setItem('comfy_orders', JSON.stringify(orders));
+    try {
+      localStorage.setItem('comfy_orders', JSON.stringify(orders));
+    } catch {
+      // Ignore quota errors
+    }
   }, [orders]);
 
   useEffect(() => {
-    localStorage.setItem('comfy_products', JSON.stringify(products));
+    try {
+      localStorage.setItem('comfy_products', JSON.stringify(products));
+    } catch {
+      // Ignore quota errors
+    }
   }, [products]);
 
   useEffect(() => {
-    localStorage.setItem('comfy_customers', JSON.stringify(customers));
+    try {
+      localStorage.setItem('comfy_customers', JSON.stringify(customers));
+    } catch {
+      // Ignore quota errors
+    }
   }, [customers]);
 
   useEffect(() => {
-    localStorage.setItem('comfy_profile', JSON.stringify(storeProfile));
+    try {
+      localStorage.setItem('comfy_profile', JSON.stringify(storeProfile));
+    } catch {
+      // Ignore quota errors
+    }
   }, [storeProfile]);
 
   const showToast = (msg: string) => {

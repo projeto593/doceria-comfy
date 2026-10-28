@@ -25,6 +25,18 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Store } from '../../types';
+import { CityStateSelect } from '../common/CityStateSelect';
+import {
+  MAX_OWNER_NAME,
+  MAX_STORE_NAME,
+  MAX_EMAIL,
+  PHONE_DIGITS_LENGTH,
+  extractPhoneDigits,
+  formatPhone11,
+  sanitizeOwnerName,
+  sanitizeStoreName,
+  sanitizeEmail,
+} from '../../utils/validation';
 
 export const SuperAdminView: React.FC = () => {
   const {
@@ -51,7 +63,7 @@ export const SuperAdminView: React.FC = () => {
   const [storeName, setStoreName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState('São Paulo, SP');
 
   const pendingStoresCount = stores.filter((s) => s.status === 'pending_approval').length;
   const activeStoresCount = stores.filter((s) => s.status === 'active').length;
@@ -108,12 +120,18 @@ export const SuperAdminView: React.FC = () => {
     e.preventDefault();
     if (!ownerName.trim() || !storeName.trim() || !email.trim()) return;
 
+    const digits = extractPhoneDigits(phone);
+    if (digits.length !== PHONE_DIGITS_LENGTH) {
+      showToast('O WhatsApp deve conter exatamente 11 números (DDD + 9 dígitos).');
+      return;
+    }
+
     addStore(
       {
-        name: storeName.trim(),
-        ownerName: ownerName.trim(),
-        phone: phone.trim() || '(11) 99999-0000',
-        email: email.trim(),
+        name: storeName.trim().slice(0, MAX_STORE_NAME),
+        ownerName: ownerName.trim().slice(0, MAX_OWNER_NAME),
+        phone: formatPhone11(digits),
+        email: email.trim().toLowerCase().slice(0, MAX_EMAIL),
         city: city.trim() || 'São Paulo, SP',
       },
       true // admin can create as active
@@ -123,7 +141,7 @@ export const SuperAdminView: React.FC = () => {
     setStoreName('');
     setPhone('');
     setEmail('');
-    setCity('');
+    setCity('São Paulo, SP');
     setIsAddModalOpen(false);
   };
 
@@ -169,16 +187,17 @@ export const SuperAdminView: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] active:scale-[0.98] text-white text-xs font-bold shadow-xs transition-all cursor-pointer shrink-0"
+            className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] active:scale-[0.98] text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer whitespace-nowrap shrink-0"
           >
-            <Plus className="w-4 h-4 text-[#D07A6D]" />
-            <span>+ Cadastrar Nova Doceria</span>
+            <Plus className="w-4 h-4 text-[#D07A6D] shrink-0" />
+            <span>Cadastrar Nova Doceria</span>
           </button>
         </div>
 
         {/* Global KPI Strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
           <div className="bg-white p-5 rounded-2xl border border-[#EFE8DE] shadow-xs">
             <span className="text-xs text-[#7C6E68]">Total de Lojas</span>
             <h3 className="text-2xl font-serif font-bold text-[#231818] mt-1 tabular-nums">
@@ -218,11 +237,12 @@ export const SuperAdminView: React.FC = () => {
         </div>
 
         {/* Search & Status Filters */}
-        <div className="bg-white p-3.5 rounded-2xl border border-[#EFE8DE] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div className="bg-white p-3.5 rounded-2xl border border-[#EFE8DE] flex flex-col lg:flex-row lg:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 lg:pb-0">
             <button
+              type="button"
               onClick={() => setFilterStatus('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
                 filterStatus === 'all'
                   ? 'bg-[#2B1D1D] text-white'
                   : 'text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3]'
@@ -232,8 +252,9 @@ export const SuperAdminView: React.FC = () => {
             </button>
 
             <button
+              type="button"
               onClick={() => setFilterStatus('pending_approval')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 filterStatus === 'pending_approval'
                   ? 'bg-amber-600 text-white'
                   : 'text-amber-800 bg-amber-50 hover:bg-amber-100'
@@ -244,8 +265,9 @@ export const SuperAdminView: React.FC = () => {
             </button>
 
             <button
+              type="button"
               onClick={() => setFilterStatus('active')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
                 filterStatus === 'active'
                   ? 'bg-emerald-700 text-white'
                   : 'text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3]'
@@ -255,8 +277,9 @@ export const SuperAdminView: React.FC = () => {
             </button>
 
             <button
+              type="button"
               onClick={() => setFilterStatus('blocked')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
                 filterStatus === 'blocked'
                   ? 'bg-[#B85848] text-white'
                   : 'text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3]'
@@ -266,24 +289,24 @@ export const SuperAdminView: React.FC = () => {
             </button>
           </div>
 
-          <div className="relative w-full sm:w-72">
+          <div className="relative w-full lg:w-72 shrink-0">
             <Search className="w-4 h-4 text-[#7C6E68] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Buscar por loja, dona ou gmail..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:border-[#D07A6D] text-[#231818]"
+              className="w-full pl-9 pr-3 py-2 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818] min-h-[42px] sm:min-h-[38px]"
             />
           </div>
         </div>
 
-        {/* Stores List: Mobile Card View (block md:hidden) + Desktop Table (hidden md:block) */}
+        {/* Stores List: Mobile & Tablet Card Grid (xl:hidden) + Desktop Table (hidden xl:block) */}
         <div className="bg-white rounded-3xl border border-[#EFE8DE] shadow-xs overflow-hidden">
-          {/* Mobile Card List */}
-          <div className="block md:hidden divide-y divide-[#EFE8DE]">
+          {/* Mobile & Tablet Card List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:hidden divide-y md:divide-y-0 md:gap-4 md:p-4 divide-[#EFE8DE]">
             {filteredStores.length === 0 ? (
-              <div className="p-8 text-center text-[#7C6E68] text-xs">
+              <div className="col-span-full p-8 text-center text-[#7C6E68] text-xs">
                 Nenhuma doceria encontrada para os filtros atuais.
               </div>
             ) : (
@@ -294,8 +317,8 @@ export const SuperAdminView: React.FC = () => {
                 return (
                   <div
                     key={store.id}
-                    className={`p-4 space-y-3.5 transition-colors ${
-                      isPending ? 'bg-amber-50/40' : isBlocked ? 'bg-red-50/25' : ''
+                    className={`p-4 md:rounded-2xl md:border md:border-[#EFE8DE] space-y-3.5 transition-colors flex flex-col justify-between min-w-0 ${
+                      isPending ? 'bg-amber-50/40' : isBlocked ? 'bg-red-50/25' : 'bg-white'
                     }`}
                   >
                     {/* Header info */}
@@ -415,8 +438,8 @@ export const SuperAdminView: React.FC = () => {
             )}
           </div>
 
-          {/* Desktop Table View (hidden on mobile, preserved for PC) */}
-          <div className="hidden md:block overflow-x-auto">
+          {/* Desktop Table View (hidden on mobile/tablet, preserved for wide PC >= 1280px) */}
+          <div className="hidden xl:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-[#FBF8F3] border-b border-[#EFE8DE] text-[#7C6E68] uppercase text-[10px] font-bold tracking-wider">
                 <tr>
@@ -719,75 +742,89 @@ export const SuperAdminView: React.FC = () => {
             <form onSubmit={handleCreateStore} className="flex flex-col flex-1 overflow-hidden">
               <div className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1 text-xs">
                 <div>
-                  <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                    Nome da Pessoa (Responsável) *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-[#7C6E68]">
+                      Nome da Pessoa *
+                    </label>
+                    <span className="text-[10px] font-mono text-[#7C6E68]/80">
+                      {ownerName.length}/{MAX_OWNER_NAME}
+                    </span>
+                  </div>
                   <input
                     type="text"
                     required
+                    maxLength={MAX_OWNER_NAME}
                     placeholder="Ex: Vanessa Guimarães"
                     value={ownerName}
-                    onChange={(e) => setOwnerName(e.target.value)}
+                    onChange={(e) => setOwnerName(sanitizeOwnerName(e.target.value))}
                     className="w-full px-3.5 py-2 text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:border-[#D07A6D]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                    Nome da Loja / Doceria *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-[#7C6E68]">
+                      Nome da Loja *
+                    </label>
+                    <span className="text-[10px] font-mono text-[#7C6E68]/80">
+                      {storeName.length}/{MAX_STORE_NAME}
+                    </span>
+                  </div>
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Vanessa Confeitaria Artesanal"
+                    maxLength={MAX_STORE_NAME}
+                    placeholder="Ex: Vanessa Confeitaria"
                     value={storeName}
-                    onChange={(e) => setStoreName(e.target.value)}
+                    onChange={(e) => setStoreName(sanitizeStoreName(e.target.value))}
                     className="w-full px-3.5 py-2 text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:border-[#D07A6D]"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                      Telefone / WhatsApp *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-[#7C6E68]">
+                        Telefone / WhatsApp *
+                      </label>
+                      <span className="text-[10px] font-mono text-[#7C6E68]/80">
+                        {extractPhoneDigits(phone).length}/{PHONE_DIGITS_LENGTH}
+                      </span>
+                    </div>
                     <input
-                      type="text"
+                      type="tel"
+                      inputMode="numeric"
                       required
+                      maxLength={15}
                       placeholder="(11) 98765-4321"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl"
+                      onChange={(e) => setPhone(formatPhone11(e.target.value))}
+                      className="w-full px-3.5 py-2 text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl font-mono"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                      Gmail / E-mail *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-semibold text-[#7C6E68]">
+                        Gmail / E-mail *
+                      </label>
+                      <span className="text-[10px] font-mono text-[#7C6E68]/80">
+                        {email.length}/{MAX_EMAIL}
+                      </span>
+                    </div>
                     <input
                       type="email"
                       required
+                      maxLength={MAX_EMAIL}
                       placeholder="vanessa.doces@gmail.com"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => setEmail(sanitizeEmail(e.target.value))}
                       className="w-full px-3.5 py-2 text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                    Cidade e Estado
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ex: Salvador, BA"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl"
-                  />
-                </div>
+                <CityStateSelect value={city} onChange={setCity} compact showIcon={false} />
               </div>
 
               <div className="px-5 py-3 border-t border-[#EFE8DE] bg-[#FBF8F3] flex items-center justify-end gap-2.5 shrink-0">

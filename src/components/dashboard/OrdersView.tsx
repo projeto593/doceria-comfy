@@ -39,21 +39,23 @@ export const OrdersView: React.FC = () => {
         </div>
 
         <button
+          type="button"
           onClick={() => setIsNewOrderModalOpen(true)}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors cursor-pointer min-h-[44px] shrink-0"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors cursor-pointer min-h-[44px] whitespace-nowrap shrink-0"
         >
-          <Plus className="w-4 h-4 text-[#D07A6D]" />
-          <span>+ Novo pedido</span>
+          <Plus className="w-4 h-4 text-[#D07A6D] shrink-0" />
+          <span>Novo pedido</span>
         </button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-[#EFE8DE]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 sm:p-3.5 rounded-2xl border border-[#EFE8DE]">
         {/* Status segmented controls */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 sm:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 lg:pb-0">
           <button
+            type="button"
             onClick={() => setFilterStatus('all')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors min-h-[38px] flex items-center ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors min-h-[38px] flex items-center cursor-pointer shrink-0 ${
               filterStatus === 'all'
                 ? 'bg-[#2B1D1D] text-white font-semibold'
                 : 'text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3]'
@@ -94,14 +96,14 @@ export const OrdersView: React.FC = () => {
         </div>
 
         {/* Search */}
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full lg:w-64 xl:w-72 shrink-0">
           <Search className="w-4 h-4 text-[#7C6E68] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Buscar por cliente ou pedido..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818] min-h-[42px]"
+            className="w-full pl-9 pr-3 py-2 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818] min-h-[42px]"
           />
         </div>
       </div>
@@ -128,24 +130,24 @@ export const OrdersView: React.FC = () => {
             return (
               <div
                 key={order.id}
-                className="bg-white rounded-2xl p-5 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between"
+                className="min-w-0 bg-white rounded-2xl p-4 sm:p-5 border border-[#EFE8DE] shadow-xs hover:border-[#D07A6D]/40 transition-all flex flex-col justify-between"
               >
                 <div>
                   {/* Top Bar of the Card */}
-                  <div className="flex items-center justify-between pb-3 border-b border-[#EFE8DE]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-[#F8F4EE] text-[#7C6E68] flex items-center justify-center text-xs font-bold font-mono">
+                  <div className="flex items-center justify-between gap-2 pb-3 border-b border-[#EFE8DE]">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-[#F8F4EE] text-[#7C6E68] flex items-center justify-center text-xs font-bold font-mono shrink-0">
                         {order.customerInitials}
                       </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-[#231818]">{order.customerName}</h4>
-                        <p className="text-[11px] text-[#7C6E68] font-mono">{order.orderNumber}</p>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-[#231818] truncate">{order.customerName}</h4>
+                        <p className="text-[11px] text-[#7C6E68] font-mono tabular-nums">{order.orderNumber}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <span
-                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg ${conf.bg} ${conf.color}`}
+                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap ${conf.bg} ${conf.color}`}
                       >
                         {conf.label}
                       </span>

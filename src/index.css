@@ -15,8 +15,18 @@ body {
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   background-color: #FBF8F3;
   color: #231818;
+  overflow-x: hidden;
 }
 
 .font-serif {
   font-family: "Fraunces", Georgia, serif;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

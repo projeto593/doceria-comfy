@@ -3,7 +3,7 @@ import { useComfy } from '../../context/ComfyContext';
 import { X, Plus, Minus, Cake, User, Phone, Calendar, Clock, DollarSign, FileText } from 'lucide-react';
 
 export const NewOrderModal: React.FC = () => {
-  const { isNewOrderModalOpen, setIsNewOrderModalOpen, products, customers, addOrder } = useComfy();
+  const { isNewOrderModalOpen, setIsNewOrderModalOpen, products, customers, addOrder, showToast } = useComfy();
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -57,7 +57,7 @@ export const NewOrderModal: React.FC = () => {
     }));
 
     if (items.length === 0) {
-      alert('Selecione ao menos um doce para o pedido.');
+      showToast('Selecione ao menos um doce para o pedido.');
       return;
     }
 
@@ -131,11 +131,11 @@ export const NewOrderModal: React.FC = () => {
               </div>
               <div>
                 <input
-                  type="text"
+                  type="tel"
                   placeholder="WhatsApp / Telefone"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] focus:ring-1 focus:ring-[#D07A6D] text-[#231818]"
+                  className="w-full px-3.5 py-2.5 text-base sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] focus:ring-1 focus:ring-[#D07A6D] text-[#231818] min-h-[44px]"
                 />
               </div>
             </div>
@@ -143,40 +143,48 @@ export const NewOrderModal: React.FC = () => {
 
           {/* Doces / Itens do Catálogo */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <label className="text-xs font-semibold uppercase tracking-wider text-[#7C6E68] flex items-center gap-1.5">
-                <Cake className="w-3.5 h-3.5 text-[#D07A6D]" /> Selecionar Doces do Catálogo
+                <Cake className="w-3.5 h-3.5 text-[#D07A6D] shrink-0" /> Selecionar Doces do Catálogo
               </label>
-              <span className="text-xs text-[#7C6E68]">
-                {Object.keys(selectedItems).length} item(s) selecionado(s)
+              <span className="text-xs text-[#7C6E68] whitespace-nowrap tabular-nums">
+                {Object.keys(selectedItems).length} item(s)
               </span>
             </div>
 
-            <div className="space-y-2 border border-[#EFE8DE] rounded-xl p-3 bg-[#FBF8F3] max-h-52 overflow-y-auto">
+            <div className="space-y-2 border border-[#EFE8DE] rounded-xl p-2.5 sm:p-3 bg-[#FBF8F3] max-h-52 overflow-y-auto">
               {products.map((prod) => {
                 const qty = selectedItems[prod.id] || 0;
                 return (
                   <div
                     key={prod.id}
-                    className={`flex items-center justify-between p-2.5 rounded-xl border transition-colors ${
+                    className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border transition-colors min-w-0 ${
                       qty > 0
                         ? 'bg-white border-[#D07A6D]/40 shadow-xs'
                         : 'bg-white/60 border-transparent hover:bg-white'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl p-1.5 rounded-lg bg-[#F8F4EE]">
-                        {prod.emoji || '🧁'}
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold text-[#231818]">{prod.name}</p>
-                        <p className="text-xs text-[#7C6E68]">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      {prod.imageUrl ? (
+                        <img
+                          src={prod.imageUrl}
+                          alt={prod.name}
+                          className="w-10 h-10 rounded-lg object-cover border border-[#EFE8DE] shrink-0"
+                        />
+                      ) : (
+                        <span className="w-10 h-10 flex items-center justify-center text-xl rounded-lg bg-[#F8F4EE] shrink-0">
+                          {prod.emoji || '🧁'}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-semibold text-[#231818] truncate">{prod.name}</p>
+                        <p className="text-[11px] sm:text-xs text-[#7C6E68] truncate tabular-nums">
                           R$ {prod.price.toFixed(2).replace('.', ',')} · {prod.unit}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {qty > 0 ? (
                         <div className="flex items-center gap-2 bg-[#F8F4EE] px-2 py-1 rounded-lg">
                           <button

@@ -1,7 +1,7 @@
 export interface Product {
   id: string;
   name: string;
-  category: string;
+  category?: string;
   price: number;
   unit: string;
   description: string;
@@ -9,6 +9,7 @@ export interface Product {
   active: boolean;
   tag?: string;
   emoji?: string;
+  imageUrl?: string;
 }
 
 export interface OrderItem {
