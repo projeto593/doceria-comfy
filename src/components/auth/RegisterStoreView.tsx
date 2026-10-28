@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useComfy } from '../../context/ComfyContext';
 import { Logo } from '../common/Logo';
 import { CityStateSelect } from '../common/CityStateSelect';
@@ -23,22 +23,38 @@ import {
   Check,
   Clock,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
 
 export const RegisterStoreView: React.FC = () => {
-  const { addStore, setViewMode } = useComfy();
+  const {
+    addStore,
+    setViewMode,
+    prefilledRegisterEmail,
+    setPrefilledRegisterEmail,
+  } = useComfy();
 
   const [ownerName, setOwnerName] = useState('');
   const [storeName, setStoreName] = useState('');
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(
+    () => sanitizeEmail(prefilledRegisterEmail || '')
+  );
   const [city, setCity] = useState('São Paulo, SP');
   const [formError, setFormError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (prefilledRegisterEmail) {
+      setEmail((prev) => prev || sanitizeEmail(prefilledRegisterEmail));
+      setPrefilledRegisterEmail('');
+    }
+  }, [prefilledRegisterEmail, setPrefilledRegisterEmail]);
 
   const phoneDigits = extractPhoneDigits(phone);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
@@ -61,15 +77,24 @@ export const RegisterStoreView: React.FC = () => {
       return;
     }
 
-    addStore({
-      name: cleanStore.slice(0, MAX_STORE_NAME),
-      ownerName: cleanOwner.slice(0, MAX_OWNER_NAME),
-      phone: formatPhone11(phoneDigits),
-      email: cleanEmail.slice(0, MAX_EMAIL),
-      city: city.trim() || 'São Paulo, SP',
-    });
+    setIsSubmitting(true);
+    try {
+      const created = await addStore({
+        name: cleanStore.slice(0, MAX_STORE_NAME),
+        ownerName: cleanOwner.slice(0, MAX_OWNER_NAME),
+        phone: formatPhone11(phoneDigits),
+        email: cleanEmail.slice(0, MAX_EMAIL),
+        city: city.trim() || 'São Paulo, SP',
+      });
 
-    setIsSubmitted(true);
+      if (created) {
+        setIsSubmitted(true);
+      } else {
+        setFormError('Não foi possível concluir o envio agora. Verifique os dados e tente novamente.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -320,10 +345,20 @@ export const RegisterStoreView: React.FC = () => {
           {/* Action button */}
           <button
             type="submit"
-            className="w-full mt-4 py-3.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] active:scale-[0.99] text-white text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[48px]"
+            disabled={isSubmitting}
+            className="w-full mt-4 py-3.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] active:scale-[0.99] text-white text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[48px] disabled:opacity-60"
           >
-            <span>Enviar Cadastro para Análise</span>
-            <ArrowRight className="w-4 h-4 text-[#D07A6D]" />
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 text-[#D07A6D] animate-spin" />
+                <span>Salvando na nuvem...</span>
+              </>
+            ) : (
+              <>
+                <span>Enviar Cadastro para Análise</span>
+                <ArrowRight className="w-4 h-4 text-[#D07A6D]" />
+              </>
+            )}
           </button>
         </form>
 

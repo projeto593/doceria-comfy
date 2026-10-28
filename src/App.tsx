@@ -12,6 +12,7 @@ import { RegisterStoreView } from './components/auth/RegisterStoreView';
 import { SuperAdminView } from './components/admin/SuperAdminView';
 import { LoginView } from './components/auth/LoginView';
 import { NewOrderModal } from './components/common/NewOrderModal';
+import { AppErrorBoundary } from './components/common/AppErrorBoundary';
 import { CheckCircle2 } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -57,8 +58,10 @@ const AppContent: React.FC = () => {
 
 export default function App() {
   return (
-    <ComfyProvider>
-      <AppContent />
-    </ComfyProvider>
+    <AppErrorBoundary>
+      <ComfyProvider>
+        <AppContent />
+      </ComfyProvider>
+    </AppErrorBoundary>
   );
 }

@@ -83,7 +83,31 @@ export const CustomersView: React.FC = () => {
 
       {/* Customers Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
-        {filteredCustomers.map((cust) => {
+        {filteredCustomers.length === 0 ? (
+          <div className="col-span-full bg-white rounded-2xl p-10 sm:p-12 text-center border border-[#EFE8DE] space-y-3">
+            <User className="w-10 h-10 text-[#7C6E68]/40 mx-auto" />
+            <h3 className="font-serif text-lg font-bold text-[#231818]">
+              {customers.length === 0
+                ? 'Nenhum cliente cadastrado ainda'
+                : 'Nenhum cliente encontrado'}
+            </h3>
+            <p className="text-xs text-[#7C6E68] max-w-md mx-auto">
+              {customers.length === 0
+                ? 'Os clientes aparecerão aqui conforme você cadastrar manualmente ou registrar novas encomendas.'
+                : 'Tente buscar por outro nome, telefone ou e-mail.'}
+            </p>
+            {customers.length === 0 && (
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(true)}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#2B1D1D] rounded-xl hover:bg-[#3D2B2B] cursor-pointer"
+              >
+                + Cadastrar primeiro cliente
+              </button>
+            )}
+          </div>
+        ) : (
+          filteredCustomers.map((cust) => {
           const rawPhone = cust.phone.replace(/\D/g, '');
           const waLink = `https://wa.me/55${rawPhone}?text=Ol%C3%A1%20${encodeURIComponent(
             cust.name
@@ -162,7 +186,8 @@ export const CustomersView: React.FC = () => {
               </div>
             </div>
           );
-        })}
+        })
+        )}
       </div>
 
       {/* Modal Novo Cliente */}

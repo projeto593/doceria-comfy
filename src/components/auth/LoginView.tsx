@@ -12,6 +12,7 @@ import {
   EyeOff,
   MessageCircle,
   Clock,
+  Loader2,
 } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
@@ -24,6 +25,7 @@ export const LoginView: React.FC = () => {
 
   // Mode: 'login' | 'recovery'
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Unified login state
   const [identifier, setIdentifier] = useState('');
@@ -46,7 +48,7 @@ export const LoginView: React.FC = () => {
   const [isNotRegistered, setIsNotRegistered] = useState(false);
   const [isPendingApproval, setIsPendingApproval] = useState(false);
 
-  const handleUnifiedLogin = (e: React.FormEvent) => {
+  const handleUnifiedLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setIsNotRegistered(false);
@@ -60,33 +62,34 @@ export const LoginView: React.FC = () => {
       return;
     }
 
-    // 1. Verify if credentials belong to Super Admin
-    if (
-      cleanIdentifier.toLowerCase() === 'projetointegradors303@gmail.com' ||
-      cleanIdentifier.toLowerCase() === 'admin@comfy.app' ||
-      cleanIdentifier.toLowerCase() === 'admin'
-    ) {
-      const adminRes = loginAsSuperAdmin(cleanIdentifier, cleanPassword);
-      if (!adminRes.success) {
-        setErrorMessage(adminRes.message);
+    setIsSubmitting(true);
+    try {
+      // 1. Verify if email belongs to Super Admin
+      if (cleanIdentifier.toLowerCase() === 'projetointegradors303@gmail.com') {
+        const adminRes = await loginAsSuperAdmin(cleanIdentifier, cleanPassword, rememberMe);
+        if (!adminRes.success) {
+          setErrorMessage(adminRes.message);
+        }
+        return;
       }
-      return;
-    }
 
-    // 2. Otherwise authenticate against Store records
-    const storeRes = loginWithCredentials(cleanIdentifier, cleanPassword);
-    if (!storeRes.success) {
-      setErrorMessage(storeRes.message);
-      if (storeRes.notRegistered) {
-        setIsNotRegistered(true);
+      // 2. Otherwise authenticate against Store records in Cloud Firestore
+      const storeRes = await loginWithCredentials(cleanIdentifier, cleanPassword, rememberMe);
+      if (!storeRes.success) {
+        setErrorMessage(storeRes.message);
+        if (storeRes.notRegistered) {
+          setIsNotRegistered(true);
+        }
+        if (storeRes.pendingApproval) {
+          setIsPendingApproval(true);
+        }
       }
-      if (storeRes.pendingApproval) {
-        setIsPendingApproval(true);
-      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleRecoverySubmit = (e: React.FormEvent) => {
+  const handleRecoverySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setRecoveryResult(null);
@@ -96,20 +99,25 @@ export const LoginView: React.FC = () => {
       return;
     }
 
-    const res = recoverPassword(recoveryQuery);
-    if (res.success && res.store) {
-      setRecoveryResult({
-        success: true,
-        message: res.message,
-        tempPass: res.tempPass,
-        storeName: res.store.name,
-        phone: res.store.phone,
-      });
-    } else {
-      setRecoveryResult({
-        success: false,
-        message: res.message,
-      });
+    setIsSubmitting(true);
+    try {
+      const res = await recoverPassword(recoveryQuery);
+      if (res.success && res.store) {
+        setRecoveryResult({
+          success: true,
+          message: res.message,
+          tempPass: res.tempPass,
+          storeName: res.store.name,
+          phone: res.store.phone,
+        });
+      } else {
+        setRecoveryResult({
+          success: false,
+          message: res.message,
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -119,6 +127,7 @@ export const LoginView: React.FC = () => {
       <div className="max-w-md w-full mx-auto flex items-center justify-between mb-6">
         <Logo variant="dark" size="md" onClick={() => setViewMode('landing')} />
         <button
+          type="button"
           onClick={() => setViewMode('landing')}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#7C6E68] hover:text-[#231818] transition-colors cursor-pointer"
         >
@@ -134,13 +143,13 @@ export const LoginView: React.FC = () => {
           <div>
             <div className="mb-6">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#D07A6D] block mb-1">
-                • Acesso à Plataforma
+                • Acesso Sincronizado na Nuvem
               </span>
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#231818] tracking-tight">
                 Entrar na Comfy
               </h1>
               <p className="text-xs text-[#7C6E68] mt-1 leading-relaxed">
-                Digite seu e-mail e senha cadastrados para acessar o seu painel.
+                Acesse sua doceria de qualquer celular, tablet ou computador.
               </p>
             </div>
 
@@ -197,12 +206,12 @@ export const LoginView: React.FC = () => {
               {/* Identifier Field */}
               <div>
                 <label className="text-[11px] font-bold text-[#7C6E68] uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-[#D07A6D]" /> E-mail ou Usuário *
+                  <Mail className="w-3.5 h-3.5 text-[#D07A6D]" /> E-mail de Acesso *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="seuemail@exemplo.com"
+                  placeholder="seuemail@gmail.com"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full px-4 py-2.5 sm:py-2.5 text-base sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818] min-h-[46px]"
@@ -255,17 +264,27 @@ export const LoginView: React.FC = () => {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     className="rounded-sm border-[#EFE8DE] text-[#D07A6D] focus:ring-[#D07A6D]"
                   />
-                  <span>Lembrar meu acesso</span>
+                  <span>Manter conectado neste dispositivo</span>
                 </label>
               </div>
 
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full mt-2 py-3 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full mt-2 py-3 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 min-h-[46px]"
               >
-                <span>Entrar na Plataforma</span>
-                <ArrowRight className="w-4 h-4 text-[#D07A6D]" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 text-[#D07A6D] animate-spin" />
+                    <span>Autenticando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Entrar na Plataforma</span>
+                    <ArrowRight className="w-4 h-4 text-[#D07A6D]" />
+                  </>
+                )}
               </button>
             </form>
 
@@ -274,6 +293,7 @@ export const LoginView: React.FC = () => {
               <p className="text-xs text-[#7C6E68]">
                 Ainda não cadastrou sua loja?{' '}
                 <button
+                  type="button"
                   onClick={() => setViewMode('register-store')}
                   className="text-[#D07A6D] font-bold hover:underline cursor-pointer"
                 >
@@ -294,7 +314,7 @@ export const LoginView: React.FC = () => {
               </h1>
               <p className="text-xs text-[#7C6E68] mt-1 leading-relaxed">
                 Digite o e-mail ou o WhatsApp cadastrado da sua doceria para localizar seus dados de
-                acesso.
+                acesso na nuvem.
               </p>
             </div>
 
@@ -346,7 +366,7 @@ export const LoginView: React.FC = () => {
                           setIsRecoveryMode(false);
                         }
                       }}
-                      className="w-full mt-2 py-1.5 px-3 rounded-lg bg-[#2B1D1D] text-white text-xs font-bold transition-colors hover:bg-[#3D2B2B]"
+                      className="w-full mt-2 py-1.5 px-3 rounded-lg bg-[#2B1D1D] text-white text-xs font-bold transition-colors hover:bg-[#3D2B2B] cursor-pointer"
                     >
                       Preencher no Login e Entrar
                     </button>
@@ -385,10 +405,20 @@ export const LoginView: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full mt-2 py-3 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full mt-2 py-3 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs sm:text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 min-h-[46px]"
               >
-                <span>Localizar Cadastro & Recuperar Senha</span>
-                <ArrowRight className="w-4 h-4 text-[#D07A6D]" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 text-[#D07A6D] animate-spin" />
+                    <span>Consultando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Localizar Cadastro & Recuperar Senha</span>
+                    <ArrowRight className="w-4 h-4 text-[#D07A6D]" />
+                  </>
+                )}
               </button>
             </form>
 

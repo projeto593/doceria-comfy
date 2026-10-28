@@ -17,11 +17,22 @@ import {
 } from 'lucide-react';
 
 export const PublicMenuView: React.FC = () => {
-  const { products, storeProfile, addOrder, setViewMode, showToast } = useComfy();
+  const {
+    products,
+    storeProfile,
+    currentStore,
+    hasActiveStore,
+    currentUserRole,
+    addOrder,
+    setViewMode,
+    showToast,
+  } = useComfy();
 
   const [cart, setCart] = useState<{ [productId: string]: number }>({});
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState('');
 
   // Checkout form
   const [customerName, setCustomerName] = useState('');
@@ -31,6 +42,7 @@ export const PublicMenuView: React.FC = () => {
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
 
+  const isStoreManager = currentUserRole === 'store' || currentUserRole === 'superadmin';
   const activeProducts = products.filter((p) => p.active);
 
   const handleUpdateQuantity = (productId: string, delta: number) => {
@@ -52,31 +64,21 @@ export const PublicMenuView: React.FC = () => {
     return sum + (prod ? prod.price * qty : 0);
   }, 0);
 
-  const handleFinishOrder = (e: React.FormEvent) => {
+  const rawStorePhone = storeProfile.whatsapp.replace(/\D/g, '');
+  const headerWhatsAppHref = rawStorePhone
+    ? `https://wa.me/55${rawStorePhone}`
+    : `https://wa.me/?text=${encodeURIComponent(`Olá ${storeProfile.name}! Gostaria de fazer uma encomenda.`)}`;
+
+  const handleFinishOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName.trim() || totalItemsCount === 0) return;
+    if (!customerName.trim() || totalItemsCount === 0 || isSubmitting) return;
 
     const items = Object.entries(cart).map(([productId, quantity]) => ({
       productId,
       quantity,
     }));
 
-    // Register inside the Comfy app state
-    addOrder({
-      customerName: customerName.trim(),
-      customerPhone: customerPhone.trim() || '(11) 99999-0000',
-      items,
-      deliveryDate: deliveryDate || 'Hoje',
-      deliveryType,
-      paymentStatus: 'pendente',
-      notes: notes.trim()
-        ? `${notes.trim()}${address ? ` (Endereço: ${address})` : ''}`
-        : address
-        ? `Endereço: ${address}`
-        : undefined,
-    });
-
-    // Format WhatsApp message to open
+    // Format WhatsApp message
     const itemLines = items
       .map((it) => {
         const prod = products.find((p) => p.id === it.productId);
@@ -87,46 +89,105 @@ export const PublicMenuView: React.FC = () => {
       .join('\n');
 
     const message = encodeURIComponent(
-      `Olá ${storeProfile.ownerName}! Vi seu cardápio no status e quero fazer um pedido:\n\n${itemLines}\n\n*Total: R$ ${totalAmount
+      `Olá ${storeProfile.ownerName}! Vi o cardápio da *${storeProfile.name}* e quero fazer um pedido:\n\n${itemLines}\n\n*Total: R$ ${totalAmount
         .toFixed(2)
         .replace('.', ',')}*\n*Nome:* ${customerName}\n*Data desejada:* ${deliveryDate}\n*Tipo:* ${
         deliveryType === 'retirada' ? 'Retirada no Ateliê' : `Entrega (${address})`
       }${notes ? `\n*Observações:* ${notes}` : ''}`
     );
 
-    const rawStorePhone = storeProfile.whatsapp.replace(/\D/g, '') || '11987654321';
-    const waUrl = `https://wa.me/55${rawStorePhone}?text=${message}`;
+    const waUrl = rawStorePhone
+      ? `https://wa.me/55${rawStorePhone}?text=${message}`
+      : `https://wa.me/?text=${message}`;
 
-    window.open(waUrl, '_blank');
-    setOrderCompleted(true);
+    setLastWhatsAppUrl(waUrl);
+    setIsSubmitting(true);
+
+    try {
+      await addOrder({
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim() || '(11) 99999-0000',
+        items,
+        deliveryDate: deliveryDate || 'Hoje',
+        deliveryType,
+        paymentStatus: 'pendente',
+        notes: notes.trim()
+          ? `${notes.trim()}${address ? ` (Endereço: ${address})` : ''}`
+          : address
+          ? `Endereço: ${address}`
+          : undefined,
+      });
+
+      const anchor = document.createElement('a');
+      anchor.href = waUrl;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+
+      setOrderCompleted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const shareUrl = `${window.location.origin}/?loja=${encodeURIComponent(currentStore.id)}`;
+
+  if (!hasActiveStore) {
+    return (
+      <div className="min-h-screen bg-[#FBF8F3] text-[#231818] flex flex-col items-center justify-center p-6 text-center antialiased">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-[#EFE8DE] shadow-xs space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-[#F8F4EE] text-[#D07A6D] flex items-center justify-center mx-auto">
+            <ShoppingBag className="w-6 h-6" />
+          </div>
+          <h1 className="text-xl font-serif font-bold text-[#231818]">
+            Cardápio não encontrado
+          </h1>
+          <p className="text-xs text-[#7C6E68] leading-relaxed">
+            Esta doceria ainda não está ativa ou não possui cadastro no banco de dados.
+          </p>
+          <button
+            type="button"
+            onClick={() => setViewMode('landing')}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-semibold transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Voltar ao Início</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FBF8F3] text-[#231818] pb-28 antialiased">
-      {/* Top Banner for Confectioner Demo Switcher */}
-      <div className="bg-[#2B1D1D] text-white px-4 py-2.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4">
-        <div className="flex items-start sm:items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#D07A6D] shrink-0 mt-1 sm:mt-0" />
-          <span>
-            <strong>Prévia do Cardápio Público:</strong> Este é o link que seus clientes abrem pelo
-            Status do WhatsApp.
-          </span>
+      {/* Top Banner shown only when store owner / admin previews their menu */}
+      {isStoreManager && (
+        <div className="bg-[#2B1D1D] text-white px-4 py-2.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4">
+          <div className="flex items-start sm:items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#D07A6D] shrink-0 mt-1 sm:mt-0" />
+            <span>
+              <strong>Prévia do Cardápio Público:</strong> Este é o link que seus clientes abrem pelo
+              Status do WhatsApp em qualquer aparelho.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setViewMode('dashboard')}
+            className="underline font-semibold hover:text-[#D07A6D] text-xs cursor-pointer shrink-0 self-start sm:self-auto"
+          >
+            Voltar ao Painel da Doceria →
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setViewMode('dashboard')}
-          className="underline font-semibold hover:text-[#D07A6D] text-xs cursor-pointer shrink-0 self-start sm:self-auto"
-        >
-          Voltar ao Painel da Doceria →
-        </button>
-      </div>
+      )}
 
       {/* Header of the Confectionery */}
       <header className="bg-white border-b border-[#EFE8DE] px-4 sm:px-6 py-6 sm:py-8">
         <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center sm:items-start justify-between gap-5 sm:gap-6 text-center sm:text-left">
           <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0">
             <div className="w-16 h-16 rounded-3xl bg-[#D07A6D] text-white flex items-center justify-center font-serif text-3xl font-bold shadow-md shrink-0">
-              c
+              {(storeProfile.name || 'c').charAt(0).toLowerCase()}
             </div>
             <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-semibold mb-1">
@@ -150,15 +211,17 @@ export const PublicMenuView: React.FC = () => {
             </div>
           </div>
 
-          <a
-            href={`https://wa.me/55${storeProfile.whatsapp.replace(/\D/g, '')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold border border-emerald-200 transition-colors min-h-[42px] whitespace-nowrap shrink-0"
-          >
-            <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Falar no WhatsApp</span>
-          </a>
+          {rawStorePhone && (
+            <a
+              href={headerWhatsAppHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold border border-emerald-200 transition-colors min-h-[42px] whitespace-nowrap shrink-0"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Falar no WhatsApp</span>
+            </a>
+          )}
         </div>
       </header>
 
@@ -178,11 +241,12 @@ export const PublicMenuView: React.FC = () => {
             </div>
           </div>
           <button
+            type="button"
             onClick={() => {
-              navigator.clipboard.writeText(window.location.href);
+              navigator.clipboard.writeText(shareUrl);
               showToast('Link do cardápio copiado!');
             }}
-            className="p-2 rounded-xl bg-white hover:bg-[#EFE8DE] text-[#231818] border border-[#E8DCCB] text-xs font-medium flex items-center gap-1.5 shrink-0"
+            className="p-2 rounded-xl bg-white hover:bg-[#EFE8DE] text-[#231818] border border-[#E8DCCB] text-xs font-medium flex items-center gap-1.5 shrink-0 cursor-pointer"
             title="Copiar link do cardápio"
           >
             <Share2 className="w-3.5 h-3.5" />
@@ -192,7 +256,18 @@ export const PublicMenuView: React.FC = () => {
 
         {/* Product Cards List */}
         <div className="space-y-4">
-          {activeProducts.map((prod) => {
+          {activeProducts.length === 0 ? (
+            <div className="bg-white rounded-2xl p-10 text-center border border-[#EFE8DE] space-y-2">
+              <Sparkles className="w-7 h-7 text-[#D07A6D] mx-auto" />
+              <h3 className="text-base font-serif font-bold text-[#231818]">
+                Cardápio em preparação
+              </h3>
+              <p className="text-xs text-[#7C6E68]">
+                Esta doceria ainda não cadastrou produtos ativos no cardápio digital.
+              </p>
+            </div>
+          ) : (
+            activeProducts.map((prod) => {
             const qty = cart[prod.id] || 0;
             return (
               <div
@@ -277,7 +352,8 @@ export const PublicMenuView: React.FC = () => {
                 </div>
               </div>
             );
-          })}
+          })
+          )}
         </div>
       </main>
 
@@ -331,35 +407,50 @@ export const PublicMenuView: React.FC = () => {
             </div>
 
             {orderCompleted ? (
-              <div className="p-8 text-center space-y-4">
+              <div className="p-6 sm:p-8 text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <h3 className="text-xl font-serif font-bold text-[#231818]">
-                  Pedido Enviado com Sucesso! ✨
+                  Pedido Registrado com Sucesso! ✨
                 </h3>
                 <p className="text-xs text-[#7C6E68] leading-relaxed max-w-md mx-auto">
-                  Sua mensagem foi gerada e o pedido já foi registrado no sistema da doceria Comfy.
-                  A confeiteira {storeProfile.ownerName} confirmará com você pelo WhatsApp em
-                  instantes.
+                  Sua encomenda já foi sincronizada no painel da doceria{' '}
+                  <strong>{storeProfile.name}</strong>. Clique abaixo caso a conversa do WhatsApp não
+                  tenha aberto automaticamente.
                 </p>
-                <div className="pt-4 flex items-center justify-center gap-3">
+                {lastWhatsAppUrl && (
+                  <a
+                    href={lastWhatsAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors min-h-[44px]"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Abrir Conversa no WhatsApp</span>
+                  </a>
+                )}
+                <div className="pt-2 flex items-center justify-center gap-3">
                   <button
+                    type="button"
                     onClick={() => {
                       setCart({});
                       setOrderCompleted(false);
                       setIsCheckoutOpen(false);
                     }}
-                    className="px-5 py-2 text-xs font-semibold text-[#7C6E68] hover:text-[#231818]"
+                    className="px-5 py-2 text-xs font-semibold text-[#7C6E68] hover:text-[#231818] cursor-pointer"
                   >
                     Fechar
                   </button>
-                  <button
-                    onClick={() => setViewMode('dashboard')}
-                    className="px-5 py-2 text-xs font-semibold text-white bg-[#2B1D1D] rounded-xl hover:bg-[#3D2B2B]"
-                  >
-                    Ver no Painel da Loja
-                  </button>
+                  {isStoreManager && (
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('dashboard')}
+                      className="px-5 py-2 text-xs font-semibold text-white bg-[#2B1D1D] rounded-xl hover:bg-[#3D2B2B] cursor-pointer"
+                    >
+                      Ver no Painel da Loja
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (

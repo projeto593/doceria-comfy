@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useComfy } from '../../context/ComfyContext';
-import { X, Plus, Minus, Cake, User, Phone, Calendar, Clock, DollarSign, FileText } from 'lucide-react';
+import { X, Plus, Minus, Cake, User, Phone, Clock, DollarSign, FileText } from 'lucide-react';
 
 export const NewOrderModal: React.FC = () => {
   const { isNewOrderModalOpen, setIsNewOrderModalOpen, products, customers, addOrder, showToast } = useComfy();
@@ -11,11 +11,24 @@ export const NewOrderModal: React.FC = () => {
   const [deliveryType, setDeliveryType] = useState<'retirada' | 'entrega'>('retirada');
   const [paymentStatus, setPaymentStatus] = useState<'pago' | 'pendente' | '50_sinal'>('pago');
   const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Selected item map: productId -> quantity
-  const [selectedItems, setSelectedItems] = useState<{ [productId: string]: number }>({
-    'prod-1': 1,
-  });
+  const [selectedItems, setSelectedItems] = useState<{ [productId: string]: number }>({});
+
+  useEffect(() => {
+    if (!isNewOrderModalOpen) return;
+    setSelectedItems((prev) => {
+      const validEntries = Object.entries(prev).filter(
+        ([prodId, qty]) => qty > 0 && products.some((p) => p.id === prodId)
+      );
+      if (validEntries.length > 0) {
+        return Object.fromEntries(validEntries);
+      }
+      const firstProd = products.find((p) => p.active) || products[0];
+      return firstProd ? { [firstProd.id]: 1 } : {};
+    });
+  }, [isNewOrderModalOpen, products]);
 
   if (!isNewOrderModalOpen) return null;
 
@@ -47,9 +60,9 @@ export const NewOrderModal: React.FC = () => {
     return acc + (prod ? prod.price * qty : 0);
   }, 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName.trim()) return;
+    if (!customerName.trim() || isSubmitting) return;
 
     const items = Object.entries(selectedItems).map(([productId, quantity]) => ({
       productId,
@@ -61,21 +74,28 @@ export const NewOrderModal: React.FC = () => {
       return;
     }
 
-    addOrder({
-      customerName: customerName.trim(),
-      customerPhone: customerPhone.trim() || '(11) 99999-0000',
-      items,
-      deliveryDate: deliveryDate || 'Hoje',
-      deliveryType,
-      paymentStatus,
-      notes: notes.trim(),
-    });
+    setIsSubmitting(true);
+    try {
+      const ok = await addOrder({
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim() || '(11) 99999-0000',
+        items,
+        deliveryDate: deliveryDate || 'Hoje',
+        deliveryType,
+        paymentStatus,
+        notes: notes.trim(),
+      });
 
-    // Reset fields
-    setCustomerName('');
-    setCustomerPhone('');
-    setSelectedItems({ 'prod-1': 1 });
-    setNotes('');
+      if (ok) {
+        setCustomerName('');
+        setCustomerPhone('');
+        const firstProd = products.find((p) => p.active) || products[0];
+        setSelectedItems(firstProd ? { [firstProd.id]: 1 } : {});
+        setNotes('');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -115,19 +135,21 @@ export const NewOrderModal: React.FC = () => {
                   className="w-full px-3.5 py-2.5 text-base sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818] min-h-[44px]"
                 />
                 {/* Quick autocomplete chips */}
-                <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-xs text-[#7C6E68]">
-                  <span className="shrink-0 text-[11px]">Sugeridos:</span>
-                  {customers.slice(0, 3).map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => handleSelectCustomer(c.name)}
-                      className="px-2.5 py-1 rounded-lg bg-[#F8F4EE] hover:bg-[#EFE8DE] text-[11px] font-medium text-[#231818] transition-colors shrink-0 min-h-[30px] flex items-center cursor-pointer"
-                    >
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
+                {customers.length > 0 && (
+                  <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-xs text-[#7C6E68]">
+                    <span className="shrink-0 text-[11px]">Sugeridos:</span>
+                    {customers.slice(0, 3).map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => handleSelectCustomer(c.name)}
+                        className="px-2.5 py-1 rounded-lg bg-[#F8F4EE] hover:bg-[#EFE8DE] text-[11px] font-medium text-[#231818] transition-colors shrink-0 min-h-[30px] flex items-center cursor-pointer"
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <input
@@ -153,71 +175,78 @@ export const NewOrderModal: React.FC = () => {
             </div>
 
             <div className="space-y-2 border border-[#EFE8DE] rounded-xl p-2.5 sm:p-3 bg-[#FBF8F3] max-h-52 overflow-y-auto">
-              {products.map((prod) => {
-                const qty = selectedItems[prod.id] || 0;
-                return (
-                  <div
-                    key={prod.id}
-                    className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border transition-colors min-w-0 ${
-                      qty > 0
-                        ? 'bg-white border-[#D07A6D]/40 shadow-xs'
-                        : 'bg-white/60 border-transparent hover:bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                      {prod.imageUrl ? (
-                        <img
-                          src={prod.imageUrl}
-                          alt={prod.name}
-                          className="w-10 h-10 rounded-lg object-cover border border-[#EFE8DE] shrink-0"
-                        />
-                      ) : (
-                        <span className="w-10 h-10 flex items-center justify-center text-xl rounded-lg bg-[#F8F4EE] shrink-0">
-                          {prod.emoji || '🧁'}
-                        </span>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-semibold text-[#231818] truncate">{prod.name}</p>
-                        <p className="text-[11px] sm:text-xs text-[#7C6E68] truncate tabular-nums">
-                          R$ {prod.price.toFixed(2).replace('.', ',')} · {prod.unit}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      {qty > 0 ? (
-                        <div className="flex items-center gap-2 bg-[#F8F4EE] px-2 py-1 rounded-lg">
-                          <button
-                            type="button"
-                            onClick={() => handleQuantityChange(prod.id, -1)}
-                            className="p-1 hover:bg-[#EFE8DE] rounded-md text-[#231818] transition-colors"
-                          >
-                            <Minus className="w-3.5 h-3.5" />
-                          </button>
-                          <span className="text-xs font-bold text-[#231818] w-4 text-center tabular-nums">
-                            {qty}
+              {products.length === 0 ? (
+                <div className="p-6 text-center text-xs text-[#7C6E68]">
+                  Nenhum produto cadastrado no catálogo ainda. Cadastre um produto na aba{' '}
+                  <strong className="text-[#231818]">Catálogo</strong> antes de criar encomendas.
+                </div>
+              ) : (
+                products.map((prod) => {
+                  const qty = selectedItems[prod.id] || 0;
+                  return (
+                    <div
+                      key={prod.id}
+                      className={`flex items-center justify-between gap-2 p-2.5 rounded-xl border transition-colors min-w-0 ${
+                        qty > 0
+                          ? 'bg-white border-[#D07A6D]/40 shadow-xs'
+                          : 'bg-white/60 border-transparent hover:bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        {prod.imageUrl ? (
+                          <img
+                            src={prod.imageUrl}
+                            alt={prod.name}
+                            className="w-10 h-10 rounded-lg object-cover border border-[#EFE8DE] shrink-0"
+                          />
+                        ) : (
+                          <span className="w-10 h-10 flex items-center justify-center text-xl rounded-lg bg-[#F8F4EE] shrink-0">
+                            {prod.emoji || '🧁'}
                           </span>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-semibold text-[#231818] truncate">{prod.name}</p>
+                          <p className="text-[11px] sm:text-xs text-[#7C6E68] truncate tabular-nums">
+                            R$ {prod.price.toFixed(2).replace('.', ',')} · {prod.unit}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {qty > 0 ? (
+                          <div className="flex items-center gap-2 bg-[#F8F4EE] px-2 py-1 rounded-lg">
+                            <button
+                              type="button"
+                              onClick={() => handleQuantityChange(prod.id, -1)}
+                              className="p-1 hover:bg-[#EFE8DE] rounded-md text-[#231818] transition-colors"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="text-xs font-bold text-[#231818] w-4 text-center tabular-nums">
+                              {qty}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleQuantityChange(prod.id, 1)}
+                              className="p-1 hover:bg-[#EFE8DE] rounded-md text-[#231818] transition-colors"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
                           <button
                             type="button"
                             onClick={() => handleQuantityChange(prod.id, 1)}
-                            className="p-1 hover:bg-[#EFE8DE] rounded-md text-[#231818] transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-[#231818] bg-[#EFE8DE] hover:bg-[#D07A6D] hover:text-white rounded-lg transition-colors"
                           >
-                            <Plus className="w-3.5 h-3.5" />
+                            + Adicionar
                           </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleQuantityChange(prod.id, 1)}
-                          className="px-2.5 py-1 text-xs font-medium text-[#231818] bg-[#EFE8DE] hover:bg-[#D07A6D] hover:text-white rounded-lg transition-colors"
-                        >
-                          + Adicionar
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 

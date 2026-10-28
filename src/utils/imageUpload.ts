@@ -1,11 +1,14 @@
+import { MAX_PRODUCT_IMAGE_URL } from './validation';
+
 /**
  * Reads an uploaded image file and compresses/resizes it on the client side
- * so it can be reliably stored in state/localStorage and rendered crisply.
+ * so it fits comfortably within Firestore document size limits (< 400KB string)
+ * while rendering crisply on mobile, tablet, and desktop.
  */
 export const compressProductImage = (
   file: File,
-  maxDimension = 640,
-  quality = 0.8
+  maxDimension = 560,
+  quality = 0.76
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith('image/')) {
@@ -50,16 +53,26 @@ export const compressProductImage = (
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          resolve(dataUrl);
+          resolve(dataUrl.slice(0, MAX_PRODUCT_IMAGE_URL));
           return;
         }
 
-        // Fill warm cream background for transparent PNGs
         ctx.fillStyle = '#FBF8F3';
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
 
-        const compressed = canvas.toDataURL('image/jpeg', quality);
+        let compressed = canvas.toDataURL('image/jpeg', quality);
+        let currentQuality = quality;
+        while (compressed.length > MAX_PRODUCT_IMAGE_URL && currentQuality > 0.35) {
+          currentQuality -= 0.12;
+          compressed = canvas.toDataURL('image/jpeg', currentQuality);
+        }
+
+        if (compressed.length > MAX_PRODUCT_IMAGE_URL) {
+          reject(new Error('A imagem é muito grande. Escolha uma foto mais leve.'));
+          return;
+        }
+
         resolve(compressed);
       };
 

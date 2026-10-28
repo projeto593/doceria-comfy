@@ -208,8 +208,18 @@ export const OrdersView: React.FC = () => {
 
                   {/* Status Change Buttons */}
                   <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {order.status === 'pending' && (
+                      <button
+                        type="button"
+                        onClick={() => updateOrderStatus(order.id, 'in_production')}
+                        className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#D07A6D] hover:bg-[#B85848] text-white text-xs font-semibold transition-colors min-h-[40px] flex items-center justify-center cursor-pointer"
+                      >
+                        Iniciar Produção →
+                      </button>
+                    )}
                     {order.status === 'in_production' && (
                       <button
+                        type="button"
                         onClick={() => updateOrderStatus(order.id, 'ready')}
                         className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors min-h-[40px] flex items-center justify-center cursor-pointer"
                       >
@@ -218,6 +228,7 @@ export const OrdersView: React.FC = () => {
                     )}
                     {order.status === 'ready' && (
                       <button
+                        type="button"
                         onClick={() => updateOrderStatus(order.id, 'delivered')}
                         className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors min-h-[40px] flex items-center justify-center cursor-pointer"
                       >

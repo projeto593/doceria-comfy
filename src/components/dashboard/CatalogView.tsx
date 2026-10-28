@@ -24,7 +24,7 @@ export const CatalogView: React.FC = () => {
     addProduct,
     updateProduct,
     toggleProductStatus,
-    storeProfile,
+    currentStore,
     setViewMode,
     showToast,
   } = useComfy();
@@ -47,9 +47,8 @@ export const CatalogView: React.FC = () => {
   const [newProdPrepTime, setNewProdPrepTime] = useState('4');
   const [newProdImage, setNewProdImage] = useState<string>('');
 
-  // Public status URL
-  const publicMenuSlug = storeProfile.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const publicMenuUrl = `https://comfy.app/cardapio/${publicMenuSlug}`;
+  // Real cross-device public catalog URL backed by Cloud Firestore
+  const publicMenuUrl = `${window.location.origin}/?loja=${encodeURIComponent(currentStore.id)}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(publicMenuUrl);
@@ -270,7 +269,34 @@ export const CatalogView: React.FC = () => {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
-        {filteredProducts.map((prod) => (
+        {filteredProducts.length === 0 ? (
+          <div className="col-span-full bg-white rounded-2xl p-10 sm:p-12 text-center border border-[#EFE8DE] space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#F8F4EE] text-[#D07A6D] flex items-center justify-center mx-auto text-xl">
+              🧁
+            </div>
+            <h3 className="font-serif text-lg font-bold text-[#231818]">
+              {products.length === 0
+                ? 'Catálogo vazio no banco de dados'
+                : 'Nenhum doce encontrado para esta busca'}
+            </h3>
+            <p className="text-xs text-[#7C6E68] max-w-md mx-auto">
+              {products.length === 0
+                ? 'Cadastre seus doces reais com fotos, preços e tempo de preparo para publicá-los no cardápio digital.'
+                : 'Tente buscar por outro nome ou limpe o campo de pesquisa.'}
+            </p>
+            {products.length === 0 && (
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-white bg-[#2B1D1D] rounded-xl hover:bg-[#3D2B2B] cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 text-[#D07A6D]" />
+                <span>Cadastrar primeiro produto</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          filteredProducts.map((prod) => (
           <div
             key={prod.id}
             className={`min-w-0 bg-white rounded-2xl p-4 sm:p-5 border transition-all flex flex-col justify-between ${
@@ -358,7 +384,8 @@ export const CatalogView: React.FC = () => {
               </button>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
 
       {/* Modal Novo Produto */}

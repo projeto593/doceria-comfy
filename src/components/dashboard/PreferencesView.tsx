@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useComfy } from '../../context/ComfyContext';
 import { CityStateSelect } from '../common/CityStateSelect';
 import {
@@ -21,6 +21,22 @@ export const PreferencesView: React.FC = () => {
   const [city, setCity] = useState(storeProfile.city);
   const [whatsapp, setWhatsapp] = useState(formatPhone11(storeProfile.whatsapp));
   const [pixKey, setPixKey] = useState(storeProfile.pixKey);
+
+  useEffect(() => {
+    setName(storeProfile.name);
+    setOwnerName(storeProfile.ownerName);
+    setSegment(storeProfile.segment);
+    setCity(storeProfile.city);
+    setWhatsapp(formatPhone11(storeProfile.whatsapp));
+    setPixKey(storeProfile.pixKey);
+  }, [
+    storeProfile.name,
+    storeProfile.ownerName,
+    storeProfile.segment,
+    storeProfile.city,
+    storeProfile.whatsapp,
+    storeProfile.pixKey,
+  ]);
 
   const whatsappDigits = extractPhoneDigits(whatsapp);
 
@@ -168,7 +184,7 @@ export const PreferencesView: React.FC = () => {
             onClick={resetAllData}
             className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-xs text-[#7C6E68] hover:text-red-600 transition-colors py-2 cursor-pointer"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Restaurar dados de demonstração
+            <RotateCcw className="w-3.5 h-3.5" /> Zerar catálogo, pedidos e clientes desta loja
           </button>
 
           <button

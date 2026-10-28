@@ -29,6 +29,8 @@ export const DashboardLayout: React.FC = () => {
     pendingOrdersCount,
     storeProfile,
     currentStore,
+    hasActiveStore,
+    currentUserRole,
     logout,
   } = useComfy();
 
@@ -66,6 +68,38 @@ export const DashboardLayout: React.FC = () => {
   ];
 
   const renderActiveView = () => {
+    if (!hasActiveStore) {
+      return (
+        <div className="bg-white rounded-3xl p-8 sm:p-12 border border-[#EFE8DE] shadow-xs max-w-xl mx-auto text-center space-y-4 my-8">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#231818]">
+            Nenhuma doceria selecionada
+          </h2>
+          <p className="text-xs sm:text-sm text-[#7C6E68] leading-relaxed">
+            Não há uma conta de doceria ativa carregada do banco de dados no momento.
+          </p>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            {currentUserRole === 'superadmin' ? (
+              <button
+                type="button"
+                onClick={() => setViewMode('super-admin')}
+                className="px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-semibold cursor-pointer"
+              >
+                Voltar ao Painel Super Adm
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={logout}
+                className="px-5 py-2.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-semibold cursor-pointer"
+              >
+                Voltar ao Login
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     if (currentStore.status === 'blocked') {
       return (
         <div className="bg-white rounded-3xl p-6 sm:p-10 lg:p-12 border border-red-200 shadow-sm max-w-2xl mx-auto text-center space-y-4 my-6 sm:my-8">

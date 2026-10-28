@@ -73,6 +73,7 @@ export type StoreStatus = 'active' | 'pending_approval' | 'blocked';
 
 export interface Store {
   id: string;
+  ownerUid?: string;
   name: string;
   ownerName: string;
   phone: string;

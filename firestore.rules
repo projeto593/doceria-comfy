@@ -1,0 +1,659 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // Global Hardened Primitives
+    // =========================================================================
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function storeExists(storeId) {
+      return exists(/databases/$(database)/documents/stores/$(storeId));
+    }
+
+    function isParentStoreActive(storeId) {
+      return storeExists(storeId) &&
+        get(/databases/$(database)/documents/stores/$(storeId)).data.status == 'active';
+    }
+
+    // =========================================================================
+    // Validation Blueprints (Anti-Update-Gap: Pure Incoming Shape Validators)
+    // =========================================================================
+    function isValidStore(data) {
+      return data.keys().hasAll([
+          'ownerUid',
+          'name',
+          'ownerDisplayName',
+          'city',
+          'segment',
+          'plan',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerUid',
+          'name',
+          'ownerDisplayName',
+          'city',
+          'segment',
+          'plan',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.ownerUid) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 45 &&
+        data.ownerDisplayName is string && data.ownerDisplayName.size() >= 1 && data.ownerDisplayName.size() <= 50 &&
+        data.city is string && data.city.size() >= 1 && data.city.size() <= 80 &&
+        data.segment is string && data.segment.size() >= 1 && data.segment.size() <= 60 &&
+        data.plan is string && data.plan.size() >= 1 && data.plan.size() <= 40 &&
+        data.status is string && data.status.size() >= 6 && data.status.size() <= 20 &&
+        (data.status == 'active' || data.status == 'pending_approval' || data.status == 'blocked') &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidStoreAccount(data) {
+      return data.keys().hasAll([
+          'storeId',
+          'ownerUid',
+          'email',
+          'phone',
+          'pixKey',
+          'loginPassword',
+          'blockReason',
+          'createdAtLabel',
+          'approvedAtLabel',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'storeId',
+          'ownerUid',
+          'email',
+          'phone',
+          'pixKey',
+          'loginPassword',
+          'blockReason',
+          'createdAtLabel',
+          'approvedAtLabel',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.storeId) &&
+        isValidId(data.ownerUid) &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 60 &&
+        data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 20 &&
+        data.pixKey is string && data.pixKey.size() <= 80 &&
+        data.loginPassword is string && data.loginPassword.size() <= 40 &&
+        data.blockReason is string && data.blockReason.size() <= 200 &&
+        data.createdAtLabel is string && data.createdAtLabel.size() >= 1 && data.createdAtLabel.size() <= 30 &&
+        data.approvedAtLabel is string && data.approvedAtLabel.size() <= 30 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidAdminSetting(data) {
+      return data.keys().hasAll([
+          'adminEmail',
+          'adminPassword',
+          'updatedAtLabel',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'adminEmail',
+          'adminPassword',
+          'updatedAtLabel',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.adminEmail is string && data.adminEmail.size() >= 3 && data.adminEmail.size() <= 60 &&
+        data.adminPassword is string && data.adminPassword.size() >= 4 && data.adminPassword.size() <= 40 &&
+        data.updatedAtLabel is string && data.updatedAtLabel.size() >= 1 && data.updatedAtLabel.size() <= 30 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll([
+          'storeId',
+          'ownerUid',
+          'name',
+          'price',
+          'unit',
+          'description',
+          'prepTimeHours',
+          'active',
+          'tag',
+          'emoji',
+          'imageUrl',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'storeId',
+          'ownerUid',
+          'name',
+          'price',
+          'unit',
+          'description',
+          'prepTimeHours',
+          'active',
+          'tag',
+          'emoji',
+          'imageUrl',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.storeId) &&
+        isValidId(data.ownerUid) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 60 &&
+        data.price is number && data.price >= 0 && data.price <= 100000 &&
+        data.unit is string && data.unit.size() >= 1 && data.unit.size() <= 35 &&
+        data.description is string && data.description.size() <= 500 &&
+        data.prepTimeHours is number && data.prepTimeHours >= 0 && data.prepTimeHours <= 720 &&
+        data.active is bool &&
+        data.tag is string && data.tag.size() <= 30 &&
+        data.emoji is string && data.emoji.size() <= 16 &&
+        data.imageUrl is string && data.imageUrl.size() <= 400000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll([
+          'storeId',
+          'ownerUid',
+          'createdByUid',
+          'orderNumber',
+          'customerName',
+          'customerPhone',
+          'customerInitials',
+          'totalAmount',
+          'status',
+          'deliveryDate',
+          'deliveryType',
+          'paymentStatus',
+          'notes',
+          'createdAtIso',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'storeId',
+          'ownerUid',
+          'createdByUid',
+          'orderNumber',
+          'customerName',
+          'customerPhone',
+          'customerInitials',
+          'totalAmount',
+          'status',
+          'deliveryDate',
+          'deliveryType',
+          'paymentStatus',
+          'notes',
+          'createdAtIso',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.storeId) &&
+        isValidId(data.ownerUid) &&
+        isValidId(data.createdByUid) &&
+        data.orderNumber is string && data.orderNumber.size() >= 1 && data.orderNumber.size() <= 20 &&
+        data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 80 &&
+        data.customerPhone is string && data.customerPhone.size() <= 25 &&
+        data.customerInitials is string && data.customerInitials.size() >= 1 && data.customerInitials.size() <= 4 &&
+        data.totalAmount is number && data.totalAmount >= 0 && data.totalAmount <= 1000000 &&
+        data.status is string && data.status.size() >= 5 && data.status.size() <= 20 &&
+        (data.status == 'pending' || data.status == 'in_production' || data.status == 'ready' || data.status == 'delivered') &&
+        data.deliveryDate is string && data.deliveryDate.size() >= 1 && data.deliveryDate.size() <= 60 &&
+        data.deliveryType is string && data.deliveryType.size() >= 7 && data.deliveryType.size() <= 10 &&
+        (data.deliveryType == 'retirada' || data.deliveryType == 'entrega') &&
+        data.paymentStatus is string && data.paymentStatus.size() >= 4 && data.paymentStatus.size() <= 12 &&
+        (data.paymentStatus == 'pago' || data.paymentStatus == 'pendente' || data.paymentStatus == '50_sinal') &&
+        data.notes is string && data.notes.size() <= 500 &&
+        data.createdAtIso is string && data.createdAtIso.size() >= 1 && data.createdAtIso.size() <= 40 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidOrderItem(data) {
+      return data.keys().hasAll([
+          'storeId',
+          'orderId',
+          'ownerUid',
+          'createdByUid',
+          'productId',
+          'productName',
+          'quantity',
+          'unitPrice',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'storeId',
+          'orderId',
+          'ownerUid',
+          'createdByUid',
+          'productId',
+          'productName',
+          'quantity',
+          'unitPrice',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.storeId) &&
+        isValidId(data.orderId) &&
+        isValidId(data.ownerUid) &&
+        isValidId(data.createdByUid) &&
+        isValidId(data.productId) &&
+        data.productName is string && data.productName.size() >= 1 && data.productName.size() <= 80 &&
+        data.quantity is number && data.quantity >= 1 && data.quantity <= 10000 &&
+        data.unitPrice is number && data.unitPrice >= 0 && data.unitPrice <= 100000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidCustomer(data) {
+      return data.keys().hasAll([
+          'storeId',
+          'ownerUid',
+          'name',
+          'initials',
+          'phone',
+          'email',
+          'address',
+          'notes',
+          'favoriteItem',
+          'totalOrders',
+          'totalSpent',
+          'lastOrderDate',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'storeId',
+          'ownerUid',
+          'name',
+          'initials',
+          'phone',
+          'email',
+          'address',
+          'notes',
+          'favoriteItem',
+          'totalOrders',
+          'totalSpent',
+          'lastOrderDate',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.storeId) &&
+        isValidId(data.ownerUid) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 80 &&
+        data.initials is string && data.initials.size() >= 1 && data.initials.size() <= 4 &&
+        data.phone is string && data.phone.size() <= 25 &&
+        data.email is string && data.email.size() <= 80 &&
+        data.address is string && data.address.size() <= 200 &&
+        data.notes is string && data.notes.size() <= 500 &&
+        data.favoriteItem is string && data.favoriteItem.size() <= 80 &&
+        data.totalOrders is number && data.totalOrders >= 0 && data.totalOrders <= 100000 &&
+        data.totalSpent is number && data.totalSpent >= 0 && data.totalSpent <= 10000000 &&
+        data.lastOrderDate is string && data.lastOrderDate.size() >= 1 && data.lastOrderDate.size() <= 40 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // =========================================================================
+    // Collection 1: Public Storefronts (/stores/{storeId}) — Zero PII
+    // =========================================================================
+    match /stores/{storeId} {
+      allow get: if isValidId(storeId) && (
+        resource == null ||
+        existing().status == 'active' ||
+        existing().status == 'pending_approval' ||
+        existing().status == 'blocked'
+      );
+
+      allow list: if existing().status == 'active' ||
+        existing().status == 'pending_approval' ||
+        existing().status == 'blocked';
+
+      allow create: if isValidId(storeId) &&
+        isValidStore(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        existsAfter(/databases/$(database)/documents/storeAccounts/$(storeId)) &&
+        (
+          incoming().ownerUid == 'comfy-admin' ||
+          incoming().status == 'pending_approval'
+        );
+
+      allow update: if isValidId(storeId) &&
+        isValidStore(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          // Action 1: Super Admin status approval / suspension
+          (
+            incoming().ownerUid == existing().ownerUid &&
+            incoming().plan == existing().plan &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+          ) ||
+          // Action 2: Active store profile update
+          (
+            existing().status == 'active' &&
+            incoming().ownerUid == existing().ownerUid &&
+            incoming().status == existing().status &&
+            incoming().plan == existing().plan &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name',
+              'ownerDisplayName',
+              'city',
+              'segment',
+              'updatedAt'
+            ])
+          )
+        );
+
+      // Atomic pair deletion: store and storeAccount must be removed together
+      allow delete: if isValidId(storeId) &&
+        !existsAfter(/databases/$(database)/documents/storeAccounts/$(storeId));
+
+      // =======================================================================
+      // Subcollection: Products (/stores/{storeId}/products/{productId})
+      // =======================================================================
+      match /products/{productId} {
+        allow get: if isValidId(storeId) && isValidId(productId) && (
+          resource == null ||
+          existing().storeId == storeId
+        );
+
+        allow list: if isValidId(storeId) && (
+          existing().active == true ||
+          existing().storeId == storeId
+        );
+
+        allow create: if isValidId(storeId) &&
+          isValidId(productId) &&
+          isValidProduct(incoming()) &&
+          incoming().storeId == storeId &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          isParentStoreActive(storeId);
+
+        allow update: if isValidId(storeId) &&
+          isValidId(productId) &&
+          isValidProduct(incoming()) &&
+          incoming().storeId == existing().storeId &&
+          incoming().ownerUid == existing().ownerUid &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          isParentStoreActive(storeId) &&
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name',
+              'price',
+              'unit',
+              'description',
+              'prepTimeHours',
+              'active',
+              'tag',
+              'emoji',
+              'imageUrl',
+              'updatedAt'
+            ]) ||
+            incoming().diff(existing()).affectedKeys().hasOnly(['active', 'updatedAt'])
+          );
+
+        allow delete: if isValidId(storeId) &&
+          isValidId(productId) &&
+          (storeExists(storeId) || !existsAfter(/databases/$(database)/documents/stores/$(storeId)));
+      }
+
+      // =======================================================================
+      // Subcollection: Orders (/stores/{storeId}/orders/{orderId})
+      // =======================================================================
+      match /orders/{orderId} {
+        allow get: if isValidId(storeId) && isValidId(orderId) && (
+          resource == null ||
+          existing().storeId == storeId
+        );
+
+        allow list: if isValidId(storeId) && existing().storeId == storeId;
+
+        allow create: if isValidId(storeId) &&
+          isValidId(orderId) &&
+          isValidOrder(incoming()) &&
+          incoming().storeId == storeId &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          isParentStoreActive(storeId);
+
+        allow update: if isValidId(storeId) &&
+          isValidId(orderId) &&
+          isValidOrder(incoming()) &&
+          incoming().storeId == existing().storeId &&
+          incoming().ownerUid == existing().ownerUid &&
+          incoming().createdByUid == existing().createdByUid &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().createdAtIso == existing().createdAtIso &&
+          incoming().updatedAt == request.time &&
+          existing().status != 'delivered' &&
+          isParentStoreActive(storeId) &&
+          (
+            (existing().status == 'pending' && incoming().status == 'in_production') ||
+            (existing().status == 'in_production' && incoming().status == 'ready') ||
+            (existing().status == 'ready' && incoming().status == 'delivered') ||
+            (incoming().status == existing().status)
+          ) &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'status',
+            'paymentStatus',
+            'updatedAt'
+          ]);
+
+        allow delete: if isValidId(storeId) &&
+          isValidId(orderId) &&
+          (storeExists(storeId) || !existsAfter(/databases/$(database)/documents/stores/$(storeId)));
+      }
+
+      // =======================================================================
+      // Subcollection: Order Items (/stores/{storeId}/orderItems/{itemId})
+      // =======================================================================
+      match /orderItems/{itemId} {
+        allow get: if isValidId(storeId) && isValidId(itemId) && (
+          resource == null ||
+          existing().storeId == storeId
+        );
+
+        allow list: if isValidId(storeId) && existing().storeId == storeId;
+
+        allow create: if isValidId(storeId) &&
+          isValidId(itemId) &&
+          isValidOrderItem(incoming()) &&
+          incoming().storeId == storeId &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          isParentStoreActive(storeId) &&
+          existsAfter(/databases/$(database)/documents/stores/$(storeId)/orders/$(incoming().orderId));
+
+        allow update: if isValidId(storeId) &&
+          isValidId(itemId) &&
+          isValidOrderItem(incoming()) &&
+          incoming().storeId == existing().storeId &&
+          incoming().orderId == existing().orderId &&
+          incoming().ownerUid == existing().ownerUid &&
+          incoming().createdByUid == existing().createdByUid &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          isParentStoreActive(storeId) &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'quantity',
+            'unitPrice',
+            'updatedAt'
+          ]);
+
+        allow delete: if isValidId(storeId) &&
+          isValidId(itemId) &&
+          (storeExists(storeId) || !existsAfter(/databases/$(database)/documents/stores/$(storeId)));
+      }
+
+      // =======================================================================
+      // Subcollection: Customers (/stores/{storeId}/customers/{customerId})
+      // =======================================================================
+      match /customers/{customerId} {
+        allow get: if isValidId(storeId) && isValidId(customerId) && (
+          resource == null ||
+          existing().storeId == storeId
+        );
+
+        allow list: if isValidId(storeId) && existing().storeId == storeId;
+
+        allow create: if isValidId(storeId) &&
+          isValidId(customerId) &&
+          isValidCustomer(incoming()) &&
+          incoming().storeId == storeId &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          isParentStoreActive(storeId);
+
+        allow update: if isValidId(storeId) &&
+          isValidId(customerId) &&
+          isValidCustomer(incoming()) &&
+          incoming().storeId == existing().storeId &&
+          incoming().ownerUid == existing().ownerUid &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          isParentStoreActive(storeId) &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name',
+            'initials',
+            'phone',
+            'email',
+            'address',
+            'notes',
+            'favoriteItem',
+            'totalOrders',
+            'totalSpent',
+            'lastOrderDate',
+            'updatedAt'
+          ]);
+
+        allow delete: if isValidId(storeId) &&
+          isValidId(customerId) &&
+          (storeExists(storeId) || !existsAfter(/databases/$(database)/documents/stores/$(storeId)));
+      }
+    }
+
+    // =========================================================================
+    // Collection 2: Isolated Store PII & Credentials (/storeAccounts/{storeId})
+    // =========================================================================
+    match /storeAccounts/{storeId} {
+      allow get: if isValidId(storeId) && (
+        resource == null ||
+        existing().storeId == storeId
+      );
+
+      allow list: if existing().email > '' || existing().phone > '';
+
+      allow create: if isValidId(storeId) &&
+        isValidStoreAccount(incoming()) &&
+        incoming().storeId == storeId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        existsAfter(/databases/$(database)/documents/stores/$(storeId)) &&
+        (
+          incoming().ownerUid == 'comfy-admin' ||
+          (
+            incoming().loginPassword == '' &&
+            incoming().blockReason == '' &&
+            incoming().approvedAtLabel == ''
+          )
+        );
+
+      allow update: if isValidId(storeId) &&
+        isValidStoreAccount(incoming()) &&
+        incoming().storeId == existing().storeId &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().email == existing().email &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().createdAtLabel == existing().createdAtLabel &&
+        incoming().updatedAt == request.time &&
+        (
+          // Action 1: Admin approves store / updates store password
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'loginPassword',
+            'approvedAtLabel',
+            'blockReason',
+            'updatedAt'
+          ]) ||
+          // Action 2: Admin blocks / unblocks store
+          (
+            incoming().loginPassword == existing().loginPassword &&
+            incoming().approvedAtLabel == existing().approvedAtLabel &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['blockReason', 'updatedAt'])
+          ) ||
+          // Action 3: Active store updates WhatsApp / PIX key in Preferences
+          (
+            isParentStoreActive(storeId) &&
+            incoming().loginPassword == existing().loginPassword &&
+            incoming().blockReason == existing().blockReason &&
+            incoming().approvedAtLabel == existing().approvedAtLabel &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['phone', 'pixKey', 'updatedAt'])
+          )
+        );
+
+      // Atomic pair deletion: storeAccount and store must be removed together
+      allow delete: if isValidId(storeId) &&
+        !existsAfter(/databases/$(database)/documents/stores/$(storeId));
+    }
+
+    // =========================================================================
+    // Collection 3: Isolated Super Admin Credentials (/adminSettings/{settingId})
+    // =========================================================================
+    match /adminSettings/{settingId} {
+      allow get: if isValidId(settingId) && settingId == 'superAdmin';
+      allow list: if false;
+
+      allow create: if isValidId(settingId) &&
+        settingId == 'superAdmin' &&
+        !exists(/databases/$(database)/documents/adminSettings/superAdmin) &&
+        isValidAdminSetting(incoming()) &&
+        incoming().adminEmail == 'projetointegradors303@gmail.com' &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isValidId(settingId) &&
+        settingId == 'superAdmin' &&
+        isValidAdminSetting(incoming()) &&
+        incoming().adminEmail == existing().adminEmail &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'adminPassword',
+          'updatedAtLabel',
+          'updatedAt'
+        ]);
+
+      allow delete: if false;
+    }
+  }
+}
