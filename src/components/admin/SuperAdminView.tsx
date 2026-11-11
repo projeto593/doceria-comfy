@@ -139,7 +139,7 @@ export const SuperAdminView: React.FC = () => {
 
       const rawPhone = passwordModalStore.phone.replace(/\D/g, '');
       const message = encodeURIComponent(
-        `Olá ${passwordModalStore.ownerName}! Seu cadastro na Comfy para a doceria *${passwordModalStore.name}* foi aprovado com sucesso! 🎉\n\nAqui estão seus dados de acesso ao painel:\n\n📧 *Login (Gmail):* ${passwordModalStore.email}\n🔑 *Senha de Acesso:* ${finalPassword}\n🔗 *Link de Acesso:* ${window.location.origin}\n\nVocê já pode entrar de qualquer celular, tablet ou PC e começar a cadastrar seus doces! Qualquer dúvida, estamos por aqui. 🧁`
+        `Olá ${passwordModalStore.ownerName}! Seu cadastro na Confy para a doceria *${passwordModalStore.name}* foi aprovado com sucesso! 🎉\n\nAqui estão seus dados de acesso ao painel:\n\n📧 *Login (Gmail):* ${passwordModalStore.email}\n🔑 *Senha de Acesso:* ${finalPassword}\n🔗 *Link de Acesso:* ${window.location.origin}\n\nVocê já pode entrar de qualquer celular, tablet ou PC e começar a cadastrar seus doces! Qualquer dúvida, estamos por aqui. 🧁`
       );
 
       const waUrl = rawPhone
@@ -154,7 +154,7 @@ export const SuperAdminView: React.FC = () => {
 
   const handleCopyCredentials = () => {
     if (!passwordModalStore) return;
-    const text = `Acesso Comfy - ${passwordModalStore.name}\nGmail: ${passwordModalStore.email}\nSenha: ${passwordInput}\nLink: ${window.location.origin}`;
+    const text = `Acesso Confy - ${passwordModalStore.name}\nGmail: ${passwordModalStore.email}\nSenha: ${passwordInput}\nLink: ${window.location.origin}`;
     navigator.clipboard.writeText(text);
     setCopiedData(true);
     showToast('Gmail e senha copiados para a área de transferência! 📋');
@@ -170,7 +170,7 @@ export const SuperAdminView: React.FC = () => {
   };
 
   const handleCopyAdminCredentials = () => {
-    const text = `Acesso Super Admin Comfy\nE-mail: projetointegradors303@gmail.com\nSenha: ${superAdminPassword}`;
+    const text = `Acesso Super Admin Confy\nE-mail: projetointegradors303@gmail.com\nSenha: ${superAdminPassword}`;
     navigator.clipboard.writeText(text);
     setCopiedAdminPass(true);
     showToast('Credenciais do Super Admin copiadas! 📋');
@@ -874,10 +874,10 @@ export const SuperAdminView: React.FC = () => {
                   Prévia da Mensagem que será enviada:
                 </span>
                 <p className="text-emerald-950 whitespace-pre-line text-[11px] leading-relaxed font-sans bg-white/70 p-2.5 rounded-lg border border-emerald-100 max-h-24 overflow-y-auto">
-                  Olá {passwordModalStore.ownerName}! Seu cadastro na Comfy para a doceria *{passwordModalStore.name}* foi aprovado com sucesso! 🎉{'\n\n'}
+                  Olá {passwordModalStore.ownerName}! Seu cadastro na Confy para a doceria *{passwordModalStore.name}* foi aprovado com sucesso! 🎉{'\n\n'}
                   📧 *Login (Gmail):* {passwordModalStore.email}{'\n'}
                   🔑 *Senha de Acesso:* {passwordInput}{'\n\n'}
-                  Seja muito bem-vinda à plataforma Comfy!
+                  Seja muito bem-vinda à plataforma Confy!
                 </p>
               </div>
             </div>

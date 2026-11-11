@@ -608,8 +608,12 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (exact) return exact;
       if (viewMode === 'public-menu') return null;
     }
-    return stores[0] || null;
-  }, [stores, currentStoreId, viewMode]);
+    // Only associate with stores[0] if the user is logged in as a store owner with an active session
+    if (currentUserRole === 'store' && stores.length > 0) {
+      return stores[0];
+    }
+    return null;
+  }, [stores, currentStoreId, viewMode, currentUserRole]);
 
   const hasActiveStore = Boolean(matchedStore && matchedStore.id);
   const currentStore: Store = matchedStore || emptyStore;
@@ -1115,8 +1119,8 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     writePersistedValue('comfy_view_mode', 'landing');
     writePersistedValue('comfy_current_store_id', null);
     setCurrentUserRoleState(null);
-    setViewModeState('landing');
     setCurrentStoreIdState('');
+    setViewModeState('landing');
     setStoreDocsMap({});
     setStoreAccountsMap({});
     setProducts([]);

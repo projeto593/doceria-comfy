@@ -146,7 +146,7 @@ export const LoginView: React.FC = () => {
                 • Acesso Sincronizado na Nuvem
               </span>
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#231818] tracking-tight">
-                Entrar na Comfy
+                Entrar na Confy
               </h1>
               <p className="text-xs text-[#7C6E68] mt-1 leading-relaxed">
                 Acesse sua doceria de qualquer celular, tablet ou computador.
@@ -376,7 +376,7 @@ export const LoginView: React.FC = () => {
                 {/* Direct WhatsApp Support Button */}
                 <a
                   href={`https://wa.me/5511987654321?text=${encodeURIComponent(
-                    `Olá! Preciso de ajuda para recuperar o acesso da minha doceria Comfy (contato: ${recoveryQuery}).`
+                    `Olá! Preciso de ajuda para recuperar o acesso da minha doceria Confy (contato: ${recoveryQuery}).`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -450,7 +450,7 @@ export const LoginView: React.FC = () => {
 
       {/* Footer */}
       <div className="text-center text-xs text-[#7C6E68] mt-6">
-        © {new Date().getFullYear()} Comfy · A plataforma da sua doceria.
+        © {new Date().getFullYear()} Confy · A plataforma da sua doceria.
       </div>
     </div>
   );

@@ -19,6 +19,7 @@ import {
   X,
   LogOut,
   MoreHorizontal,
+  ShieldAlert,
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -114,7 +115,7 @@ export const DashboardLayout: React.FC = () => {
           </h2>
           <p className="text-xs sm:text-sm text-[#7C6E68] leading-relaxed max-w-lg mx-auto">
             O acesso às funções da doceria <strong>{currentStore.name}</strong> foi suspenso
-            temporariamente pela administração da plataforma Comfy.
+            temporariamente pela administração da plataforma Confy.
             {currentStore.blockReason && (
               <span className="block mt-2 font-medium text-red-700">
                 Motivo: {currentStore.blockReason}
@@ -211,11 +212,23 @@ export const DashboardLayout: React.FC = () => {
             </span>
           </div>
 
+          {currentUserRole === 'superadmin' && (
+            <button
+              type="button"
+              onClick={() => setViewMode('super-admin')}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#D07A6D] text-white text-xs font-semibold cursor-pointer shrink-0"
+              title="Voltar ao Painel do Administrador"
+            >
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>Painel Adm</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={logout}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-red-500/25 border border-white/15 hover:border-red-400/40 text-white hover:text-red-100 text-xs font-semibold transition-colors cursor-pointer min-h-[38px] whitespace-nowrap shrink-0"
-            title="Sair da conta"
+            title="Sair para o início do site"
           >
             <LogOut className="w-3.5 h-3.5 text-[#E5B5AC]" />
             <span>Sair</span>
@@ -427,14 +440,26 @@ export const DashboardLayout: React.FC = () => {
               </div>
             </div>
 
+            {currentUserRole === 'superadmin' && (
+              <button
+                type="button"
+                onClick={() => setViewMode('super-admin')}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-semibold transition-colors cursor-pointer min-h-[42px] whitespace-nowrap shrink-0 shadow-xs"
+                title="Voltar ao Painel do Super Administrador"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-[#D07A6D]" />
+                <span>Voltar ao Super Adm</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={logout}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-red-50 text-[#231818] hover:text-red-600 border border-[#EFE8DE] hover:border-red-200 text-xs font-semibold transition-colors cursor-pointer min-h-[42px] whitespace-nowrap shrink-0"
-              title="Sair da conta"
+              title="Sair para o início do site"
             >
               <LogOut className="w-3.5 h-3.5 text-[#D07A6D]" />
-              <span>Sair</span>
+              <span>Sair do Site</span>
             </button>
           </div>
         </header>

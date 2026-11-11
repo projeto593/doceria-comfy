@@ -42,7 +42,7 @@ export const Logo: React.FC<LogoProps> = ({ variant = 'dark', size = 'md', class
           isLight ? 'text-white' : 'text-[#231818]'
         }`}
       >
-        comfy<span className="text-[#D07A6D]">.</span>
+        confy<span className="text-[#D07A6D]">.</span>
       </span>
     </div>
   );

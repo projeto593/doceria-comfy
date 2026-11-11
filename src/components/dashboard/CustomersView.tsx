@@ -111,7 +111,7 @@ export const CustomersView: React.FC = () => {
           const rawPhone = cust.phone.replace(/\D/g, '');
           const waLink = `https://wa.me/55${rawPhone}?text=Ol%C3%A1%20${encodeURIComponent(
             cust.name
-          )}%2C%20tudo%20bem%3F%20Aqui%20%C3%A9%20da%20doceria%20Comfy!`;
+          )}%2C%20tudo%20bem%3F%20Aqui%20%C3%A9%20da%20doceria%20Confy!`;
 
           return (
             <div

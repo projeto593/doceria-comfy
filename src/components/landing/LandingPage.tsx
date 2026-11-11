@@ -103,7 +103,7 @@ export const LandingPage: React.FC = () => {
 
               {/* Body Text */}
               <p className="text-sm sm:text-base md:text-lg text-[#7C6E68] leading-relaxed max-w-xl">
-                A Comfy reúne pedidos, catálogo, clientes e financeiro em um só lugar, para você
+                A Confy reúne pedidos, catálogo, clientes e financeiro em um só lugar, para você
                 cuidar do que realmente importa: seus doces.
               </p>
 
@@ -164,7 +164,7 @@ export const LandingPage: React.FC = () => {
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80 inline-block" />
                   </div>
                   <div className="px-4 py-0.5 rounded-md bg-white/10 text-white/70 text-[11px] font-mono">
-                    app.comfy.com.br
+                    app.confy.com.br
                   </div>
                   <div className="w-10" />
                 </div>
@@ -177,7 +177,7 @@ export const LandingPage: React.FC = () => {
                       <div className="w-6 h-6 rounded-lg bg-[#D07A6D] text-white flex items-center justify-center text-xs font-serif font-bold">
                         c
                       </div>
-                      <span className="text-xs font-bold text-[#231818]">comfy</span>
+                      <span className="text-xs font-bold text-[#231818]">confy</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-[#7C6E68]">Olá, Marina</span>
@@ -335,7 +335,7 @@ export const LandingPage: React.FC = () => {
               • Passo a Passo Simples
             </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#231818] mt-2 tracking-tight">
-              Como funciona o acesso à Comfy
+              Como funciona o acesso à Confy
             </h2>
             <p className="text-xs sm:text-sm text-[#7C6E68] mt-2">
               Processo ágil e seguro para você receber seus dados e começar a usar.
@@ -450,7 +450,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white tracking-tight leading-tight">
-            Comece a usar a Comfy hoje mesmo.
+            Comece a usar a Confy hoje mesmo.
           </h2>
 
           <p className="text-sm sm:text-base text-[#C9BCB8] max-w-xl mx-auto leading-relaxed">
@@ -489,12 +489,12 @@ export const LandingPage: React.FC = () => {
               onClick={() => setViewMode('login')}
               className="text-[#D07A6D] font-semibold hover:underline cursor-pointer"
             >
-              Entrar na Comfy ↗
+              Entrar na Confy ↗
             </button>
           </div>
 
           <p className="text-[11px] text-[#7C6E68]">
-            © {new Date().getFullYear()} Comfy. Todos os direitos reservados.
+            © {new Date().getFullYear()} Confy. Todos os direitos reservados.
           </p>
         </div>
       </footer>

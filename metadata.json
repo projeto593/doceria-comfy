@@ -1,5 +1,5 @@
 {
-  "name": "Comfy — Plataforma da sua Doceria",
+  "name": "Confy — Plataforma da sua Doceria",
   "description": "Sistema de gestão e landing page minimalista para docerias e confeitarias artesanais. Pedidos, catálogo, clientes e financeiro em um só lugar.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

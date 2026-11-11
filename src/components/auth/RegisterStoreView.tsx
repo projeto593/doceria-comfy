@@ -128,7 +128,7 @@ export const RegisterStoreView: React.FC = () => {
             </h1>
             <p className="text-xs sm:text-sm text-[#7C6E68] mt-2 leading-relaxed">
               Em breve você receberá uma mensagem no WhatsApp com sua senha de login exclusiva para
-              acessar a sua doceria na Comfy.
+              acessar a sua doceria na Confy.
             </p>
           </div>
 
@@ -165,7 +165,7 @@ export const RegisterStoreView: React.FC = () => {
           {/* Steps explanation */}
           <div className="text-left text-xs text-[#7C6E68] space-y-1.5 pt-1">
             <p className="font-bold text-[#231818]">Como funciona agora?</p>
-            <p>1. O administrador da Comfy revisa o cadastro da sua doceria.</p>
+            <p>1. O administrador da Confy revisa o cadastro da sua doceria.</p>
             <p>2. Uma senha exclusiva de login é gerada vinculada ao seu Gmail.</p>
             <p>3. Enviamos os dados de acesso direto no seu WhatsApp para você entrar.</p>
           </div>
@@ -190,7 +190,7 @@ export const RegisterStoreView: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center text-xs text-[#7C6E68] mt-8">
-          © {new Date().getFullYear()} Comfy · A plataforma da sua doceria.
+          © {new Date().getFullYear()} Confy · A plataforma da sua doceria.
         </div>
       </div>
     );
@@ -377,7 +377,7 @@ export const RegisterStoreView: React.FC = () => {
 
       {/* Footer */}
       <div className="text-center text-xs text-[#7C6E68] mt-8">
-        © {new Date().getFullYear()} Comfy · A plataforma da sua doceria.
+        © {new Date().getFullYear()} Confy · A plataforma da sua doceria.
       </div>
     </div>
   );
