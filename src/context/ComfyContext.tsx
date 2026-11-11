@@ -1010,7 +1010,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             success: false,
             pendingApproval: true,
             message:
-              'Seu cadastro ainda está em análise pela equipe da Comfy! Em breve sua senha de acesso será enviada no WhatsApp.',
+              'Seu cadastro ainda está em análise pela equipe da Confy! Em breve sua senha de acesso será enviada no WhatsApp.',
           };
         }
 
@@ -1019,7 +1019,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             success: false,
             blocked: true,
             message:
-              'Acesso bloqueado temporariamente pela administração da Comfy. Entre em contato com o suporte.',
+              'Acesso bloqueado temporariamente pela administração da Confy. Entre em contato com o suporte.',
           };
         }
 
