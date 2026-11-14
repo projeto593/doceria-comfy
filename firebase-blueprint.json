@@ -188,6 +188,10 @@
           "type": "number",
           "description": "Unit price in BRL."
         },
+        "costPrice": {
+          "type": "number",
+          "description": "Optional private unit production cost in BRL."
+        },
         "unit": {
           "type": "string",
           "description": "Serving or box unit description.",

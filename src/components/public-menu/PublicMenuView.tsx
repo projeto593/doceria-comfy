@@ -21,6 +21,7 @@ export const PublicMenuView: React.FC = () => {
     products,
     storeProfile,
     currentStore,
+    currentStoreId,
     hasActiveStore,
     currentUserRole,
     addOrder,
@@ -42,7 +43,13 @@ export const PublicMenuView: React.FC = () => {
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
 
-  const isStoreManager = currentUserRole === 'store' || currentUserRole === 'superadmin';
+  const hasPublicStoreQuery =
+    typeof window !== 'undefined' && Boolean(new URLSearchParams(window.location.search).get('loja'));
+  const isInternalPreview =
+    !hasPublicStoreQuery &&
+    Boolean(currentStore.id) &&
+    (currentUserRole === 'superadmin' ||
+      (currentUserRole === 'store' && currentStoreId === currentStore.id));
   const activeProducts = products.filter((p) => p.active);
 
   const handleUpdateQuantity = (productId: string, delta: number) => {
@@ -162,8 +169,8 @@ export const PublicMenuView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FBF8F3] text-[#231818] pb-28 antialiased">
-      {/* Top Banner shown only when store owner / admin previews their menu */}
-      {isStoreManager && (
+      {/* Top Banner shown ONLY during internal dashboard preview, NEVER on ?loja= public links */}
+      {isInternalPreview && (
         <div className="bg-[#2B1D1D] text-white px-4 py-2.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4">
           <div className="flex items-start sm:items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#D07A6D] shrink-0 mt-1 sm:mt-0" />
@@ -190,8 +197,7 @@ export const PublicMenuView: React.FC = () => {
               {(storeProfile.name || 'c').charAt(0).toLowerCase()}
             </div>
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-semibold mb-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold mb-1">
                 Aceitando encomendas hoje
               </div>
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#231818] break-words">
@@ -442,7 +448,7 @@ export const PublicMenuView: React.FC = () => {
                   >
                     Fechar
                   </button>
-                  {isStoreManager && (
+                  {isInternalPreview && (
                     <button
                       type="button"
                       onClick={() => setViewMode('dashboard')}

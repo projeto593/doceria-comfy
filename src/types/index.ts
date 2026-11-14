@@ -3,6 +3,7 @@ export interface Product {
   name: string;
   category?: string;
   price: number;
+  costPrice?: number;
   unit: string;
   description: string;
   prepTimeHours: number;

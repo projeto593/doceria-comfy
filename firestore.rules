@@ -152,6 +152,7 @@ service cloud.firestore {
           'ownerUid',
           'name',
           'price',
+          'costPrice',
           'unit',
           'description',
           'prepTimeHours',
@@ -166,6 +167,7 @@ service cloud.firestore {
         isValidId(data.ownerUid) &&
         data.name is string && data.name.size() >= 1 && data.name.size() <= 60 &&
         data.price is number && data.price >= 0 && data.price <= 100000 &&
+        (!('costPrice' in data) || (data.costPrice is number && data.costPrice >= 0 && data.costPrice <= 100000)) &&
         data.unit is string && data.unit.size() >= 1 && data.unit.size() <= 35 &&
         data.description is string && data.description.size() <= 500 &&
         data.prepTimeHours is number && data.prepTimeHours >= 0 && data.prepTimeHours <= 720 &&
@@ -411,6 +413,7 @@ service cloud.firestore {
             incoming().diff(existing()).affectedKeys().hasOnly([
               'name',
               'price',
+              'costPrice',
               'unit',
               'description',
               'prepTimeHours',

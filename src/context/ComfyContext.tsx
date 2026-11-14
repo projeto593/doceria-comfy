@@ -272,6 +272,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const initialPublicStore = getInitialPublicStoreParam();
 
   const [currentUserRole, setCurrentUserRoleState] = useState<'store' | 'superadmin' | null>(() => {
+    if (initialPublicStore) return null;
     const saved = readPersistedValue('comfy_user_role');
     if (saved === 'store' || saved === 'superadmin') return saved;
     return null;
@@ -301,8 +302,19 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const setViewMode = useCallback(
     (mode: AppViewMode, rememberOverride?: boolean) => {
       const keep = rememberOverride ?? rememberSession;
+      if (mode !== 'public-menu' && typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('loja')) {
+          params.delete('loja');
+          const remaining = params.toString();
+          const nextUrl = `${window.location.pathname}${remaining ? `?${remaining}` : ''}${window.location.hash}`;
+          window.history.replaceState({}, '', nextUrl);
+        }
+      }
       setViewModeState(mode);
-      writePersistedValue('comfy_view_mode', mode, keep);
+      if (mode !== 'public-menu') {
+        writePersistedValue('comfy_view_mode', mode, keep);
+      }
     },
     [rememberSession]
   );
@@ -713,6 +725,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             id: d.id,
             name: data.name,
             price: data.price,
+            costPrice: typeof data.costPrice === 'number' ? data.costPrice : undefined,
             unit: data.unit,
             description: data.description,
             prepTimeHours: data.prepTimeHours,
@@ -1529,7 +1542,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       try {
         const batch = writeBatch(db);
-        batch.set(doc(db, 'stores', storeId, 'products', prodId), {
+        const payload: Record<string, unknown> = {
           storeId,
           ownerUid,
           name: clampText(productData.name, MAX_PRODUCT_NAME, 'Novo Doce'),
@@ -1543,7 +1556,11 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           imageUrl: clampText(productData.imageUrl ?? '', MAX_PRODUCT_IMAGE_URL, ''),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-        });
+        };
+        if (typeof productData.costPrice === 'number' && Number.isFinite(productData.costPrice)) {
+          payload.costPrice = clampNumber(productData.costPrice, 0, 100000);
+        }
+        batch.set(doc(db, 'stores', storeId, 'products', prodId), payload);
         await batch.commit();
         showToast(`Doce "${productData.name}" salvo no catálogo na nuvem!`);
       } catch (error) {
@@ -1558,7 +1575,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (!currentStore.id) return;
       const storeId = sanitizeId(currentStore.id, 'store');
       try {
-        await updateDoc(doc(db, 'stores', storeId, 'products', updated.id), {
+        const payload: Record<string, unknown> = {
           name: clampText(updated.name, MAX_PRODUCT_NAME, 'Doce'),
           price: clampNumber(updated.price, 0, 100000),
           unit: clampText(updated.unit, MAX_PRODUCT_UNIT, 'unidade'),
@@ -1569,7 +1586,11 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           emoji: clampText(updated.emoji ?? '🧁', MAX_PRODUCT_EMOJI, '🧁'),
           imageUrl: clampText(updated.imageUrl ?? '', MAX_PRODUCT_IMAGE_URL, ''),
           updatedAt: serverTimestamp(),
-        });
+        };
+        if (typeof updated.costPrice === 'number' && Number.isFinite(updated.costPrice)) {
+          payload.costPrice = clampNumber(updated.costPrice, 0, 100000);
+        }
+        await updateDoc(doc(db, 'stores', storeId, 'products', updated.id), payload);
         showToast(`"${updated.name}" atualizado na nuvem.`);
       } catch (error) {
         handleFirestoreError(error, OperationType.UPDATE, `stores/${storeId}/products/${updated.id}`);

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Product } from '../../types';
 import { compressProductImage } from '../../utils/imageUpload';
+import { CostCalculatorPanel } from './CostCalculatorPanel';
 
 export const CatalogView: React.FC = () => {
   const {
@@ -42,6 +43,7 @@ export const CatalogView: React.FC = () => {
   // New product form state
   const [newProdName, setNewProdName] = useState('');
   const [newProdPrice, setNewProdPrice] = useState('');
+  const [newProdCostPrice, setNewProdCostPrice] = useState<number>(0);
   const [newProdUnit, setNewProdUnit] = useState('unidade');
   const [newProdDesc, setNewProdDesc] = useState('');
   const [newProdPrepTime, setNewProdPrepTime] = useState('4');
@@ -122,6 +124,7 @@ export const CatalogView: React.FC = () => {
   const resetNewProductModal = () => {
     setNewProdName('');
     setNewProdPrice('');
+    setNewProdCostPrice(0);
     setNewProdUnit('unidade');
     setNewProdDesc('');
     setNewProdPrepTime('4');
@@ -136,6 +139,7 @@ export const CatalogView: React.FC = () => {
     addProduct({
       name: newProdName.trim(),
       price: parseFloat(newProdPrice.replace(',', '.')) || 10,
+      costPrice: newProdCostPrice > 0 ? newProdCostPrice : undefined,
       unit: newProdUnit.trim() || 'unidade',
       description: newProdDesc.trim(),
       prepTimeHours: parseInt(newProdPrepTime, 10) || 4,
@@ -364,17 +368,32 @@ export const CatalogView: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-[#EFE8DE] flex items-center justify-between">
+            <div className="pt-4 mt-4 border-t border-[#EFE8DE] flex items-center justify-between gap-2">
               <div>
                 <span className="text-[10px] text-[#7C6E68] block">Preço</span>
                 <span className="text-lg font-serif font-bold text-[#231818] tabular-nums">
                   R$ {prod.price.toFixed(2).replace('.', ',')}
                 </span>
+                {typeof prod.costPrice === 'number' && prod.costPrice > 0 && prod.price > 0 && (() => {
+                  const unitProfit = prod.price - prod.costPrice;
+                  const marginPct = (unitProfit / prod.price) * 100;
+                  const toneClass =
+                    unitProfit < 0
+                      ? 'text-red-600'
+                      : marginPct < 25
+                      ? 'text-amber-700'
+                      : 'text-emerald-700';
+                  return (
+                    <span className={`block text-[11px] font-semibold tabular-nums mt-0.5 ${toneClass}`}>
+                      Custo R$ {prod.costPrice.toFixed(2).replace('.', ',')} · Margem {marginPct.toFixed(0)}%
+                    </span>
+                  );
+                })()}
               </div>
 
               <button
                 onClick={() => toggleProductStatus(prod.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer min-h-[38px] ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer min-h-[38px] shrink-0 ${
                   prod.active
                     ? 'bg-[#F8F4EE] hover:bg-[#EFE8DE] text-[#231818]'
                     : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
@@ -391,7 +410,7 @@ export const CatalogView: React.FC = () => {
       {/* Modal Novo Produto */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-lg max-h-[90vh] bg-white rounded-2xl shadow-xl border border-[#EFE8DE] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-2xl max-h-[92vh] bg-white rounded-2xl shadow-xl border border-[#EFE8DE] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="px-5 py-3.5 border-b border-[#EFE8DE] flex items-center justify-between bg-[#FBF8F3] shrink-0">
               <h3 className="text-base font-serif font-bold text-[#231818]">
                 Adicionar Novo Produto
@@ -533,6 +552,16 @@ export const CatalogView: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Calculadora de Custos & Margem */}
+                <CostCalculatorPanel
+                  sellingPrice={parseFloat(newProdPrice.replace(',', '.')) || 0}
+                  costPrice={newProdCostPrice}
+                  onCostPriceChange={setNewProdCostPrice}
+                  onApplySuggestedPrice={(suggested) =>
+                    setNewProdPrice(suggested.toFixed(2).replace('.', ','))
+                  }
+                />
+
                 {/* Descrição */}
                 <div>
                   <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
@@ -572,7 +601,7 @@ export const CatalogView: React.FC = () => {
       {/* Modal Editar Produto */}
       {editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-lg max-h-[90vh] bg-white rounded-2xl shadow-xl border border-[#EFE8DE] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-2xl max-h-[92vh] bg-white rounded-2xl shadow-xl border border-[#EFE8DE] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="px-5 py-3.5 border-b border-[#EFE8DE] flex items-center justify-between bg-[#FBF8F3] shrink-0">
               <h3 className="text-base font-serif font-bold text-[#231818]">Editar Produto</h3>
               <button
@@ -725,6 +754,21 @@ export const CatalogView: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                <CostCalculatorPanel
+                  sellingPrice={editingProduct.price}
+                  costPrice={editingProduct.costPrice ?? 0}
+                  onCostPriceChange={(nextCost) =>
+                    setEditingProduct((prev) =>
+                      prev ? { ...prev, costPrice: nextCost } : null
+                    )
+                  }
+                  onApplySuggestedPrice={(suggested) =>
+                    setEditingProduct((prev) =>
+                      prev ? { ...prev, price: suggested } : null
+                    )
+                  }
+                />
 
                 <div>
                   <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
