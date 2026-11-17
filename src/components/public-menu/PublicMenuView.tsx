@@ -5,7 +5,6 @@ import {
   ShoppingBag,
   Plus,
   Minus,
-  Clock,
   MapPin,
   MessageCircle,
   ArrowLeft,
@@ -38,7 +37,6 @@ export const PublicMenuView: React.FC = () => {
   // Checkout form
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [deliveryDate, setDeliveryDate] = useState('Hoje às 17:00');
   const [deliveryType, setDeliveryType] = useState<'retirada' | 'entrega'>('retirada');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
@@ -98,7 +96,7 @@ export const PublicMenuView: React.FC = () => {
     const message = encodeURIComponent(
       `Olá ${storeProfile.ownerName}! Vi o cardápio da *${storeProfile.name}* e quero fazer um pedido:\n\n${itemLines}\n\n*Total: R$ ${totalAmount
         .toFixed(2)
-        .replace('.', ',')}*\n*Nome:* ${customerName}\n*Data desejada:* ${deliveryDate}\n*Tipo:* ${
+        .replace('.', ',')}*\n*Nome:* ${customerName}\n*Tipo:* ${
         deliveryType === 'retirada' ? 'Retirada no Ateliê' : `Entrega (${address})`
       }${notes ? `\n*Observações:* ${notes}` : ''}`
     );
@@ -115,7 +113,7 @@ export const PublicMenuView: React.FC = () => {
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim() || '(11) 99999-0000',
         items,
-        deliveryDate: deliveryDate || 'Hoje',
+        deliveryDate: 'A combinar',
         deliveryType,
         paymentStatus: 'pendente',
         notes: notes.trim()
@@ -193,9 +191,19 @@ export const PublicMenuView: React.FC = () => {
       <header className="bg-white border-b border-[#EFE8DE] px-4 sm:px-6 py-6 sm:py-8">
         <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center sm:items-start justify-between gap-5 sm:gap-6 text-center sm:text-left">
           <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0">
-            <div className="w-16 h-16 rounded-3xl bg-[#D07A6D] text-white flex items-center justify-center font-serif text-3xl font-bold shadow-md shrink-0">
-              {(storeProfile.name || 'c').charAt(0).toLowerCase()}
-            </div>
+            {storeProfile.logoUrl ? (
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl overflow-hidden bg-white border border-[#EFE8DE] shadow-md shrink-0">
+                <img
+                  src={storeProfile.logoUrl}
+                  alt={`Logo ${storeProfile.name}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-16 h-16 rounded-3xl bg-[#D07A6D] text-white flex items-center justify-center font-serif text-3xl font-bold shadow-md shrink-0">
+                {(storeProfile.name || 'c').charAt(0).toLowerCase()}
+              </div>
+            )}
             <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold mb-1">
                 Aceitando encomendas hoje
@@ -209,9 +217,6 @@ export const PublicMenuView: React.FC = () => {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1.5 text-xs text-[#7C6E68] mt-2">
                 <span className="flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-[#D07A6D] shrink-0" /> {storeProfile.city}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-[#D07A6D] shrink-0" /> Pedidos até 24h de antecedência
                 </span>
               </div>
             </div>
@@ -313,8 +318,6 @@ export const PublicMenuView: React.FC = () => {
                     </p>
                     <div className="flex items-center gap-2 text-[11px] text-[#7C6E68] mt-2">
                       <span>{prod.unit}</span>
-                      <span>·</span>
-                      <span>Preparo: ~{prod.prepTimeHours}h</span>
                     </div>
                   </div>
                 </div>
@@ -502,32 +505,18 @@ export const PublicMenuView: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                      Seu WhatsApp *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="(11) 98765-4321"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[44px]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                      Data & Horário Desejado
-                    </label>
-                    <input
-                      type="text"
-                      value={deliveryDate}
-                      onChange={(e) => setDeliveryDate(e.target.value)}
-                      placeholder="Ex: Hoje às 17h ou 24/09"
-                      className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[44px]"
-                    />
-                  </div>
+                <div>
+                  <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
+                    Seu WhatsApp *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="(11) 98765-4321"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[44px]"
+                  />
                 </div>
 
                 {/* Delivery toggle */}

@@ -21,7 +21,14 @@ export const LoginView: React.FC = () => {
     loginAsSuperAdmin,
     recoverPassword,
     setViewMode,
+    currentUserRole,
+    currentStore,
+    logout,
   } = useComfy();
+
+  const hasSavedSession =
+    currentUserRole === 'superadmin' ||
+    (currentUserRole === 'store' && Boolean(currentStore.id));
 
   // Mode: 'login' | 'recovery'
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
@@ -153,6 +160,42 @@ export const LoginView: React.FC = () => {
               </p>
             </div>
 
+            {hasSavedSession && (
+              <div className="mb-5 p-4 rounded-2xl bg-[#FAF4EB] border border-[#E8DCCB] space-y-3">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#D07A6D] block">
+                    Sessão conectada neste aparelho
+                  </span>
+                  <p className="text-xs font-semibold text-[#231818] mt-0.5">
+                    {currentUserRole === 'superadmin'
+                      ? 'Super Administrador Confy'
+                      : currentStore.name}
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setViewMode(
+                        currentUserRole === 'superadmin' ? 'super-admin' : 'dashboard'
+                      )
+                    }
+                    className="flex-1 py-2.5 px-3.5 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer min-h-[42px]"
+                  >
+                    <span>Continuar para o Painel</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#D07A6D]" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="py-2.5 px-3.5 rounded-xl bg-white hover:bg-red-50 text-[#7C6E68] hover:text-red-600 border border-[#EFE8DE] text-xs font-semibold cursor-pointer min-h-[42px]"
+                  >
+                    Trocar conta
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Error / Alert Display */}
             {errorMessage && (
               <div
@@ -209,7 +252,9 @@ export const LoginView: React.FC = () => {
                   <Mail className="w-3.5 h-3.5 text-[#D07A6D]" /> E-mail de Acesso *
                 </label>
                 <input
-                  type="text"
+                  type="email"
+                  name="email"
+                  autoComplete="username"
                   required
                   placeholder="seuemail@gmail.com"
                   value={identifier}
@@ -238,6 +283,8 @@ export const LoginView: React.FC = () => {
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    autoComplete="current-password"
                     required
                     placeholder="••••••••"
                     value={password}

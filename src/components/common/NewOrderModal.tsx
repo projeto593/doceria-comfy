@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useComfy } from '../../context/ComfyContext';
-import { X, Plus, Minus, Cake, User, Phone, Clock, DollarSign, FileText } from 'lucide-react';
+import { X, Plus, Minus, Cake, User, Truck, DollarSign, FileText } from 'lucide-react';
 
 export const NewOrderModal: React.FC = () => {
   const { isNewOrderModalOpen, setIsNewOrderModalOpen, products, customers, addOrder, showToast } = useComfy();
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [deliveryDate, setDeliveryDate] = useState('Hoje às 16:30');
   const [deliveryType, setDeliveryType] = useState<'retirada' | 'entrega'>('retirada');
   const [paymentStatus, setPaymentStatus] = useState<'pago' | 'pendente' | '50_sinal'>('pago');
   const [notes, setNotes] = useState('');
@@ -80,7 +79,7 @@ export const NewOrderModal: React.FC = () => {
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim() || '(11) 99999-0000',
         items,
-        deliveryDate: deliveryDate || 'Hoje',
+        deliveryDate: 'A combinar',
         deliveryType,
         paymentStatus,
         notes: notes.trim(),
@@ -254,20 +253,13 @@ export const NewOrderModal: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold uppercase tracking-wider text-[#7C6E68] flex items-center gap-1.5 mb-2">
-                <Clock className="w-3.5 h-3.5 text-[#D07A6D]" /> Data e Horário
+                <Truck className="w-3.5 h-3.5 text-[#D07A6D]" /> Modalidade de Entrega
               </label>
-              <input
-                type="text"
-                value={deliveryDate}
-                onChange={(e) => setDeliveryDate(e.target.value)}
-                placeholder="Ex: Hoje às 17:00 ou 25/09"
-                className="w-full px-3.5 py-2.5 text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] text-[#231818]"
-              />
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setDeliveryType('retirada')}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+                  className={`flex-1 py-2.5 text-xs font-medium rounded-xl border transition-all min-h-[42px] cursor-pointer ${
                     deliveryType === 'retirada'
                       ? 'bg-[#2B1D1D] text-white border-[#2B1D1D]'
                       : 'bg-white text-[#7C6E68] border-[#EFE8DE] hover:bg-[#FBF8F3]'
@@ -278,7 +270,7 @@ export const NewOrderModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setDeliveryType('entrega')}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+                  className={`flex-1 py-2.5 text-xs font-medium rounded-xl border transition-all min-h-[42px] cursor-pointer ${
                     deliveryType === 'entrega'
                       ? 'bg-[#2B1D1D] text-white border-[#2B1D1D]'
                       : 'bg-white text-[#7C6E68] border-[#EFE8DE] hover:bg-[#FBF8F3]'

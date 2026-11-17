@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useComfy } from '../../context/ComfyContext';
 import { CityStateSelect } from '../common/CityStateSelect';
+import { compressStoreLogo } from '../../utils/imageUpload';
 import {
   MAX_OWNER_NAME,
   MAX_STORE_NAME,
@@ -10,7 +11,7 @@ import {
   sanitizeOwnerName,
   sanitizeStoreName,
 } from '../../utils/validation';
-import { Save, RotateCcw, Store, CreditCard, ShieldCheck } from 'lucide-react';
+import { Save, RotateCcw, Store, CreditCard, ShieldCheck, Camera, ImagePlus, Trash2 } from 'lucide-react';
 
 export const PreferencesView: React.FC = () => {
   const { storeProfile, updateStoreProfile, resetAllData, showToast } = useComfy();
@@ -21,6 +22,10 @@ export const PreferencesView: React.FC = () => {
   const [city, setCity] = useState(storeProfile.city);
   const [whatsapp, setWhatsapp] = useState(formatPhone11(storeProfile.whatsapp));
   const [pixKey, setPixKey] = useState(storeProfile.pixKey);
+  const [logoUrl, setLogoUrl] = useState(storeProfile.logoUrl || '');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setName(storeProfile.name);
@@ -29,6 +34,7 @@ export const PreferencesView: React.FC = () => {
     setCity(storeProfile.city);
     setWhatsapp(formatPhone11(storeProfile.whatsapp));
     setPixKey(storeProfile.pixKey);
+    setLogoUrl(storeProfile.logoUrl || '');
   }, [
     storeProfile.name,
     storeProfile.ownerName,
@@ -36,9 +42,37 @@ export const PreferencesView: React.FC = () => {
     storeProfile.city,
     storeProfile.whatsapp,
     storeProfile.pixKey,
+    storeProfile.logoUrl,
   ]);
 
   const whatsappDigits = extractPhoneDigits(whatsapp);
+
+  const processLogoFile = async (file: File | undefined) => {
+    if (!file) return;
+    setIsUploadingLogo(true);
+    try {
+      const compressed = await compressStoreLogo(file);
+      setLogoUrl(compressed);
+      await updateStoreProfile({ logoUrl: compressed });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Erro ao carregar a logo da doceria.';
+      showToast(message);
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    processLogoFile(file);
+    e.target.value = '';
+  };
+
+  const handleRemoveLogo = async () => {
+    setLogoUrl('');
+    await updateStoreProfile({ logoUrl: '' });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +88,7 @@ export const PreferencesView: React.FC = () => {
       city,
       whatsapp: formatPhone11(whatsappDigits),
       pixKey: pixKey.trim().slice(0, 80),
+      logoUrl,
     });
   };
 
@@ -64,7 +99,7 @@ export const PreferencesView: React.FC = () => {
           Preferências da Loja
         </h1>
         <p className="text-xs text-[#7C6E68] mt-1">
-          Personalize as informações da sua doceria, dados de contato e chave PIX para pagamentos.
+          Personalize a logo, informações da sua doceria, dados de contato e chave PIX para pagamentos.
         </p>
       </div>
 
@@ -74,6 +109,74 @@ export const PreferencesView: React.FC = () => {
           <h3 className="text-xs font-semibold uppercase tracking-wider text-[#D07A6D] flex items-center gap-1.5">
             <Store className="w-3.5 h-3.5" /> Identificação do Ateliê
           </h3>
+
+          {/* Logo / Foto da Marca */}
+          <div className="p-4 rounded-2xl bg-[#FBF8F3] border border-[#EFE8DE] flex flex-col sm:flex-row sm:items-center gap-4">
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleLogoFileChange}
+              className="hidden"
+            />
+
+            {logoUrl ? (
+              <div className="w-20 h-20 rounded-3xl overflow-hidden bg-white border border-[#EFE8DE] shadow-sm shrink-0 self-center sm:self-auto">
+                <img
+                  src={logoUrl}
+                  alt={`Logo ${name || 'da doceria'}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-20 h-20 rounded-3xl bg-[#D07A6D] text-white flex items-center justify-center font-serif text-3xl font-bold shadow-sm shrink-0 self-center sm:self-auto">
+                {(name || 'c').charAt(0).toLowerCase()}
+              </div>
+            )}
+
+            <div className="flex-1 min-w-0 text-center sm:text-left space-y-2">
+              <div>
+                <p className="text-xs font-bold text-[#231818]">Logo ou Foto da Marca</p>
+                <p className="text-[11px] text-[#7C6E68] mt-0.5">
+                  Substitui a letra inicial no topo do seu Cardápio Digital e aparece no painel da loja.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <button
+                  type="button"
+                  disabled={isUploadingLogo}
+                  onClick={() => logoInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#2B1D1D] hover:bg-[#3D2B2B] text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 min-h-[38px]"
+                >
+                  {logoUrl ? (
+                    <Camera className="w-3.5 h-3.5 text-[#D07A6D]" />
+                  ) : (
+                    <ImagePlus className="w-3.5 h-3.5 text-[#D07A6D]" />
+                  )}
+                  <span>
+                    {isUploadingLogo
+                      ? 'Enviando...'
+                      : logoUrl
+                      ? 'Trocar logo'
+                      : 'Enviar logo / foto'}
+                  </span>
+                </button>
+
+                {logoUrl && (
+                  <button
+                    type="button"
+                    disabled={isUploadingLogo}
+                    onClick={handleRemoveLogo}
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-white hover:bg-red-50 text-red-600 border border-[#EFE8DE] hover:border-red-200 text-xs font-semibold transition-colors cursor-pointer min-h-[38px]"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remover</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

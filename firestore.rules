@@ -54,6 +54,7 @@ service cloud.firestore {
           'segment',
           'plan',
           'status',
+          'logoUrl',
           'createdAt',
           'updatedAt'
         ]) &&
@@ -65,6 +66,7 @@ service cloud.firestore {
         data.plan is string && data.plan.size() >= 1 && data.plan.size() <= 40 &&
         data.status is string && data.status.size() >= 6 && data.status.size() <= 20 &&
         (data.status == 'active' || data.status == 'pending_approval' || data.status == 'blocked') &&
+        (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 250000)) &&
         data.createdAt is timestamp &&
         data.updatedAt is timestamp;
     }
@@ -370,6 +372,7 @@ service cloud.firestore {
               'ownerDisplayName',
               'city',
               'segment',
+              'logoUrl',
               'updatedAt'
             ])
           )

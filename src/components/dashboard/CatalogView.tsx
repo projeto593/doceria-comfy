@@ -5,7 +5,6 @@ import {
   Search,
   Check,
   X,
-  Clock,
   Edit2,
   Share2,
   Copy,
@@ -46,7 +45,6 @@ export const CatalogView: React.FC = () => {
   const [newProdCostPrice, setNewProdCostPrice] = useState<number>(0);
   const [newProdUnit, setNewProdUnit] = useState('unidade');
   const [newProdDesc, setNewProdDesc] = useState('');
-  const [newProdPrepTime, setNewProdPrepTime] = useState('4');
   const [newProdImage, setNewProdImage] = useState<string>('');
 
   // Real cross-device public catalog URL backed by Cloud Firestore
@@ -127,7 +125,6 @@ export const CatalogView: React.FC = () => {
     setNewProdCostPrice(0);
     setNewProdUnit('unidade');
     setNewProdDesc('');
-    setNewProdPrepTime('4');
     setNewProdImage('');
     setIsAddModalOpen(false);
   };
@@ -142,7 +139,7 @@ export const CatalogView: React.FC = () => {
       costPrice: newProdCostPrice > 0 ? newProdCostPrice : undefined,
       unit: newProdUnit.trim() || 'unidade',
       description: newProdDesc.trim(),
-      prepTimeHours: parseInt(newProdPrepTime, 10) || 4,
+      prepTimeHours: 0,
       active: true,
       emoji: '🧁',
       imageUrl: newProdImage || undefined,
@@ -169,7 +166,7 @@ export const CatalogView: React.FC = () => {
             Catálogo de Doces & Produtos
           </h1>
           <p className="text-xs text-[#7C6E68] mt-0.5">
-            Adicione fotos reais dos seus produtos, preços e tempo de preparo.
+            Adicione fotos reais dos seus produtos, preços e custos.
           </p>
         </div>
 
@@ -360,11 +357,8 @@ export const CatalogView: React.FC = () => {
                 </p>
               </div>
 
-              <div className="mt-3.5 flex items-center gap-2 text-xs text-[#7C6E68]">
-                <Clock className="w-3.5 h-3.5 text-[#D07A6D]" />
-                <span>Preparo: ~{prod.prepTimeHours}h</span>
-                <span>·</span>
-                <span>{prod.unit}</span>
+              <div className="mt-3 text-xs text-[#7C6E68]">
+                <span>Porção: {prod.unit}</span>
               </div>
             </div>
 
@@ -509,8 +503,8 @@ export const CatalogView: React.FC = () => {
                   />
                 </div>
 
-                {/* Preço, Unidade e Tempo */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Preço e Unidade */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
                       Preço (R$) *
@@ -535,18 +529,6 @@ export const CatalogView: React.FC = () => {
                       placeholder="Ex: caixa c/ 12, unidade"
                       value={newProdUnit}
                       onChange={(e) => setNewProdUnit(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[42px]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                      Tempo Preparo (h)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={newProdPrepTime}
-                      onChange={(e) => setNewProdPrepTime(e.target.value)}
                       className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[42px]"
                     />
                   </div>
@@ -704,7 +686,7 @@ export const CatalogView: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
                       Preço (R$) *
@@ -732,23 +714,6 @@ export const CatalogView: React.FC = () => {
                       value={editingProduct.unit}
                       onChange={(e) =>
                         setEditingProduct({ ...editingProduct, unit: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[42px]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                      Tempo Preparo (h)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={editingProduct.prepTimeHours}
-                      onChange={(e) =>
-                        setEditingProduct({
-                          ...editingProduct,
-                          prepTimeHours: parseInt(e.target.value, 10) || 0,
-                        })
                       }
                       className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[42px]"
                     />

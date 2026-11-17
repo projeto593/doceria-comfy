@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useComfy } from '../../context/ComfyContext';
-import { Search, Plus, Filter, Clock, Phone, MapPin, CheckCircle, Package, AlertCircle, Trash2 } from 'lucide-react';
+import { Search, Plus, Phone, MapPin, CheckCircle, Package, Trash2 } from 'lucide-react';
 import { OrderStatus } from '../../types';
 
 export const OrdersView: React.FC = () => {
@@ -178,10 +178,10 @@ export const OrdersView: React.FC = () => {
                   {/* Details & Notes */}
                   <div className="py-2.5 text-xs text-[#7C6E68] space-y-1">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-[#D07A6D]" />
-                      <span>{order.deliveryDate}</span>
-                      <span>·</span>
-                      <span className="capitalize">{order.deliveryType}</span>
+                      <MapPin className="w-3.5 h-3.5 text-[#D07A6D]" />
+                      <span>
+                        {order.deliveryType === 'entrega' ? 'Entrega Delivery' : 'Retirada no Ateliê'}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-2">

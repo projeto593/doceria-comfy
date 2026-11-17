@@ -54,6 +54,7 @@ import {
   MAX_PRODUCT_TAG,
   MAX_PRODUCT_UNIT,
   MAX_SEGMENT,
+  MAX_STORE_LOGO_URL,
   MAX_STORE_NAME,
   sanitizeId,
 } from '../utils/validation';
@@ -172,6 +173,7 @@ interface FirestoreStoreDoc {
   segment: string;
   plan: string;
   status: 'active' | 'pending_approval' | 'blocked';
+  logoUrl?: string;
 }
 
 interface FirestoreStoreAccountDoc {
@@ -587,6 +589,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           monthlyRevenue: 0,
           plan: pub?.plan || 'Plano Profissional',
           segment: pub?.segment || 'Doceria & Confeitaria Artesanal',
+          logoUrl: pub?.logoUrl || undefined,
           blockReason: acc?.blockReason || undefined,
           loginPassword: acc?.loginPassword || undefined,
           approvedAt: acc?.approvedAtLabel || undefined,
@@ -640,6 +643,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       city: currentStore.city,
       whatsapp: acc?.phone || currentStore.phone || '',
       pixKey: acc?.pixKey || currentStore.email || '',
+      logoUrl: currentStore.logoUrl || undefined,
     };
   }, [currentStore, storeAccountsMap]);
 
@@ -1686,6 +1690,13 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             profileUpdate.segment,
             MAX_SEGMENT,
             currentStore.segment || 'Doceria Artesanal'
+          );
+        }
+        if (profileUpdate.logoUrl !== undefined) {
+          storeChanges.logoUrl = clampText(
+            profileUpdate.logoUrl,
+            MAX_STORE_LOGO_URL,
+            ''
           );
         }
         batch.update(doc(db, 'stores', storeId), storeChanges);

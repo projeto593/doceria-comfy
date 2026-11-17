@@ -49,6 +49,12 @@
           "minLength": 6,
           "maxLength": 20
         },
+        "logoUrl": {
+          "type": "string",
+          "description": "Optional compressed store brand logo data URL or HTTPS image URL.",
+          "minLength": 0,
+          "maxLength": 250000
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",

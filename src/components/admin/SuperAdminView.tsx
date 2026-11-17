@@ -269,11 +269,20 @@ export const SuperAdminView: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={logout}
+              onClick={() => setViewMode('landing')}
               className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium text-white transition-colors cursor-pointer shrink-0"
+              title="Voltar para a tela inicial mantendo seu login conectado"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Sair</span>
+              <span>Início</span>
+            </button>
+            <button
+              type="button"
+              onClick={logout}
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-[36px] rounded-xl bg-red-500/20 hover:bg-red-500/35 border border-red-400/30 text-xs font-medium text-red-100 transition-colors cursor-pointer shrink-0"
+              title="Encerrar sessão do Super Administrador"
+            >
+              <span>Sair da Conta</span>
             </button>
           </div>
         </div>

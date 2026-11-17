@@ -23,6 +23,7 @@ export const MAX_PRODUCT_DESC = 500;
 export const MAX_PRODUCT_TAG = 30;
 export const MAX_PRODUCT_EMOJI = 16;
 export const MAX_PRODUCT_IMAGE_URL = 400000;
+export const MAX_STORE_LOGO_URL = 250000;
 
 export const MAX_ORDER_NUMBER = 20;
 export const MAX_CUSTOMER_NAME = 80;

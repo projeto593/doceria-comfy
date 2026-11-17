@@ -68,6 +68,7 @@ export interface StoreProfile {
   city: string;
   whatsapp: string;
   pixKey: string;
+  logoUrl?: string;
 }
 
 export type StoreStatus = 'active' | 'pending_approval' | 'blocked';
@@ -86,6 +87,7 @@ export interface Store {
   monthlyRevenue: number;
   plan: string;
   segment: string;
+  logoUrl?: string;
   blockReason?: string;
   loginPassword?: string;
   approvedAt?: string;

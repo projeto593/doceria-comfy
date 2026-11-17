@@ -204,9 +204,17 @@ export const DashboardLayout: React.FC = () => {
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <div className="hidden sm:flex items-center gap-2 pr-1">
-            <div className="w-7 h-7 rounded-full bg-[#E5B5AC] text-[#2B1D1D] flex items-center justify-center font-bold text-xs select-none shrink-0">
-              {ownerInitial}
-            </div>
+            {storeProfile.logoUrl ? (
+              <img
+                src={storeProfile.logoUrl}
+                alt={storeProfile.name}
+                className="w-7 h-7 rounded-full object-cover border border-white/20 bg-white shrink-0"
+              />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-[#E5B5AC] text-[#2B1D1D] flex items-center justify-center font-bold text-xs select-none shrink-0">
+                {ownerInitial}
+              </div>
+            )}
             <span className="text-xs text-white/85 font-medium max-w-[130px] truncate">
               {storeProfile.ownerName}
             </span>
@@ -226,9 +234,18 @@ export const DashboardLayout: React.FC = () => {
 
           <button
             type="button"
+            onClick={() => setViewMode('landing')}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors cursor-pointer min-h-[38px] whitespace-nowrap shrink-0"
+            title="Ir para o início mantendo seu login conectado"
+          >
+            <span>Início</span>
+          </button>
+
+          <button
+            type="button"
             onClick={logout}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-red-500/25 border border-white/15 hover:border-red-400/40 text-white hover:text-red-100 text-xs font-semibold transition-colors cursor-pointer min-h-[38px] whitespace-nowrap shrink-0"
-            title="Sair para o início do site"
+            title="Encerrar sessão neste aparelho"
           >
             <LogOut className="w-3.5 h-3.5 text-[#E5B5AC]" />
             <span>Sair</span>
@@ -297,12 +314,25 @@ export const DashboardLayout: React.FC = () => {
           </div>
 
           {/* Current Store Badge */}
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-            <p className="text-[10px] text-[#A3928E] uppercase font-bold tracking-wider">
-              Doceria Ativa
-            </p>
-            <p className="text-sm font-bold text-white truncate mt-0.5">{storeProfile.name}</p>
-            <p className="text-xs text-[#C9BCB8] truncate">{storeProfile.ownerName}</p>
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-2.5">
+            {storeProfile.logoUrl ? (
+              <img
+                src={storeProfile.logoUrl}
+                alt={storeProfile.name}
+                className="w-9 h-9 rounded-xl object-cover bg-white border border-white/15 shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-xl bg-[#D07A6D] text-white flex items-center justify-center font-serif font-bold text-base shrink-0">
+                {(storeProfile.name || 'c').charAt(0).toLowerCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-[10px] text-[#A3928E] uppercase font-bold tracking-wider">
+                Doceria Ativa
+              </p>
+              <p className="text-sm font-bold text-white truncate mt-0.5">{storeProfile.name}</p>
+              <p className="text-xs text-[#C9BCB8] truncate">{storeProfile.ownerName}</p>
+            </div>
           </div>
 
           {/* Navigation Section 1: SUA LOJA */}
@@ -425,9 +455,17 @@ export const DashboardLayout: React.FC = () => {
           {/* Store Profile Info + Direct Logout Button ONLY */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white border border-[#EFE8DE]">
-              <div className="w-8 h-8 rounded-full bg-[#E5B5AC] text-[#2B1D1D] flex items-center justify-center font-bold text-xs select-none shrink-0">
-                {ownerInitial}
-              </div>
+              {storeProfile.logoUrl ? (
+                <img
+                  src={storeProfile.logoUrl}
+                  alt={storeProfile.name}
+                  className="w-8 h-8 rounded-full object-cover border border-[#EFE8DE] bg-white shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#E5B5AC] text-[#2B1D1D] flex items-center justify-center font-bold text-xs select-none shrink-0">
+                  {ownerInitial}
+                </div>
+              )}
 
               <div className="text-left max-w-[180px]">
                 <p className="text-xs font-bold text-[#231818] leading-tight truncate">
@@ -454,12 +492,22 @@ export const DashboardLayout: React.FC = () => {
 
             <button
               type="button"
+              onClick={() => setViewMode('landing')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#F8F4EE] text-[#231818] border border-[#EFE8DE] text-xs font-semibold transition-colors cursor-pointer min-h-[42px] whitespace-nowrap shrink-0"
+              title="Ir para a página inicial mantendo sua conta conectada"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-[#7C6E68]" />
+              <span>Ver Site</span>
+            </button>
+
+            <button
+              type="button"
               onClick={logout}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-red-50 text-[#231818] hover:text-red-600 border border-[#EFE8DE] hover:border-red-200 text-xs font-semibold transition-colors cursor-pointer min-h-[42px] whitespace-nowrap shrink-0"
-              title="Sair para o início do site"
+              title="Encerrar sessão (pedirá senha ao entrar novamente)"
             >
               <LogOut className="w-3.5 h-3.5 text-[#D07A6D]" />
-              <span>Sair do Site</span>
+              <span>Sair da Conta</span>
             </button>
           </div>
         </header>
