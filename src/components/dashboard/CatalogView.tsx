@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Product } from '../../types';
 import { compressProductImage } from '../../utils/imageUpload';
+import { buildWhatsAppUrl, buildWhatsAppWebUrl, isMobileDevice } from '../../utils/orderHelpers';
 import { CostCalculatorPanel } from './CostCalculatorPanel';
 
 export const CatalogView: React.FC = () => {
@@ -868,7 +869,10 @@ export const CatalogView: React.FC = () => {
                 </div>
 
                 <a
-                  href={`https://wa.me/?text=${encodeURIComponent(statusTemplates[0].text)}`}
+                  href={(isMobileDevice() ? buildWhatsAppUrl : buildWhatsAppWebUrl)(
+                    undefined,
+                    `✨ *Novidades da ${currentStore.name || 'nossa doceria'}!* ✨\n\nOi gente! Nosso cardápio de doces artesanais atualizado já está no ar!\n\n🧁 Acesse pelo link, escolha seus sabores favoritos e confirme seu pedido direto pelo WhatsApp:\n• ${publicMenuUrl}\n\nFaça sua reserva antes que esgote! ❤️`
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-xs shrink-0"

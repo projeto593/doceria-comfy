@@ -23,6 +23,9 @@ export const PreferencesView: React.FC = () => {
   const [whatsapp, setWhatsapp] = useState(formatPhone11(storeProfile.whatsapp));
   const [pixKey, setPixKey] = useState(storeProfile.pixKey);
   const [logoUrl, setLogoUrl] = useState(storeProfile.logoUrl || '');
+  const [defaultDepositPercent, setDefaultDepositPercent] = useState<number>(
+    storeProfile.defaultDepositPercent ?? 50
+  );
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -35,6 +38,7 @@ export const PreferencesView: React.FC = () => {
     setWhatsapp(formatPhone11(storeProfile.whatsapp));
     setPixKey(storeProfile.pixKey);
     setLogoUrl(storeProfile.logoUrl || '');
+    setDefaultDepositPercent(storeProfile.defaultDepositPercent ?? 50);
   }, [
     storeProfile.name,
     storeProfile.ownerName,
@@ -43,6 +47,7 @@ export const PreferencesView: React.FC = () => {
     storeProfile.whatsapp,
     storeProfile.pixKey,
     storeProfile.logoUrl,
+    storeProfile.defaultDepositPercent,
   ]);
 
   const whatsappDigits = extractPhoneDigits(whatsapp);
@@ -81,6 +86,11 @@ export const PreferencesView: React.FC = () => {
       return;
     }
 
+    const safeDepositPercent = Math.min(
+      100,
+      Math.max(0, Math.round(Number(defaultDepositPercent) || 0))
+    );
+
     updateStoreProfile({
       name: name.trim().slice(0, MAX_STORE_NAME),
       ownerName: ownerName.trim().slice(0, MAX_OWNER_NAME),
@@ -89,6 +99,7 @@ export const PreferencesView: React.FC = () => {
       whatsapp: formatPhone11(whatsappDigits),
       pixKey: pixKey.trim().slice(0, 80),
       logoUrl,
+      defaultDepositPercent: safeDepositPercent,
     });
   };
 
@@ -258,11 +269,77 @@ export const PreferencesView: React.FC = () => {
               <input
                 type="text"
                 maxLength={80}
+                placeholder="CPF, CNPJ, celular, e-mail ou chave aleatória"
                 value={pixKey}
                 onChange={(e) => setPixKey(e.target.value)}
                 className="w-full px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:border-[#D07A6D] text-[#231818]"
               />
+              <p className="text-[10px] text-[#7C6E68] mt-1">
+                Incluída automaticamente nas mensagens de pedido e cobrança enviadas ao cliente.
+              </p>
             </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#FBF8F3] border border-[#EFE8DE] space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <p className="text-xs font-bold text-[#231818]">Porcentagem Padrão do Sinal (%)</p>
+                <p className="text-[11px] text-[#7C6E68] mt-0.5">
+                  Valor percentual aplicado automaticamente ao selecionar &ldquo;Com Sinal&rdquo; nos pedidos.
+                </p>
+              </div>
+              <span className="self-start sm:self-center text-sm font-serif font-bold text-[#D07A6D] tabular-nums bg-white px-3 py-1 rounded-lg border border-[#EFE8DE]">
+                {defaultDepositPercent}%
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {[20, 30, 40, 50, 70].map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={() => setDefaultDepositPercent(pct)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer min-h-[38px] ${
+                    defaultDepositPercent === pct
+                      ? 'bg-[#2B1D1D] text-white border-[#2B1D1D]'
+                      : 'bg-white text-[#7C6E68] border-[#EFE8DE] hover:text-[#231818] hover:border-[#D07A6D]/50'
+                  }`}
+                >
+                  {pct}%
+                </button>
+              ))}
+
+              <div className="flex items-center gap-1.5 ml-auto">
+                <label className="text-[11px] font-medium text-[#7C6E68]">Outro:</label>
+                <div className="relative w-24">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={defaultDepositPercent}
+                    onChange={(e) => {
+                      const raw = parseInt(e.target.value, 10);
+                      setDefaultDepositPercent(
+                        Number.isFinite(raw) ? Math.min(100, Math.max(0, raw)) : 0
+                      );
+                    }}
+                    className="w-full pl-3 pr-7 py-1.5 text-sm font-bold text-[#231818] bg-white border border-[#EFE8DE] rounded-xl focus:border-[#D07A6D] tabular-nums min-h-[38px]"
+                  />
+                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#7C6E68]">
+                    %
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-[#7C6E68]">
+              Exemplo: em um pedido de <strong className="text-[#231818]">R$ 100,00</strong>, o sinal padrão será{' '}
+              <strong className="text-[#D07A6D] tabular-nums">
+                R$ {defaultDepositPercent.toFixed(2).replace('.', ',')}
+              </strong>
+              .
+            </p>
           </div>
         </div>
 

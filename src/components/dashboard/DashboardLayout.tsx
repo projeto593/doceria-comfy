@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useComfy, DashboardTab } from '../../context/ComfyContext';
 import { Logo } from '../common/Logo';
 import { OverviewView } from './OverviewView';
+import { AgendaView } from './AgendaView';
 import { OrdersView } from './OrdersView';
 import { CatalogView } from './CatalogView';
 import { CustomersView } from './CustomersView';
@@ -9,6 +10,7 @@ import { ReportsView } from './ReportsView';
 import { PreferencesView } from './PreferencesView';
 import {
   LayoutDashboard,
+  Calendar,
   BookOpen,
   ShoppingBag,
   Users,
@@ -44,6 +46,7 @@ export const DashboardLayout: React.FC = () => {
     badge?: number;
   }[] = [
     { id: 'visao-geral', label: 'Visão geral', icon: LayoutDashboard },
+    { id: 'agenda', label: 'Agenda', icon: Calendar },
     { id: 'catalogo', label: 'Catálogo', icon: BookOpen },
     { id: 'pedidos', label: 'Pedidos', icon: ShoppingBag, badge: pendingOrdersCount },
     { id: 'clientes', label: 'Clientes', icon: Users },
@@ -63,9 +66,9 @@ export const DashboardLayout: React.FC = () => {
   // Mobile Bottom Bar Navigation items (top 4 + Mais)
   const mobileNavTabs = [
     { id: 'visao-geral' as DashboardTab, label: 'Início', icon: LayoutDashboard },
+    { id: 'agenda' as DashboardTab, label: 'Agenda', icon: Calendar },
     { id: 'pedidos' as DashboardTab, label: 'Pedidos', icon: ShoppingBag, badge: pendingOrdersCount },
     { id: 'catalogo' as DashboardTab, label: 'Catálogo', icon: BookOpen },
-    { id: 'clientes' as DashboardTab, label: 'Clientes', icon: Users },
   ];
 
   const renderActiveView = () => {
@@ -146,6 +149,8 @@ export const DashboardLayout: React.FC = () => {
     switch (activeTab) {
       case 'visao-geral':
         return <OverviewView />;
+      case 'agenda':
+        return <AgendaView />;
       case 'pedidos':
         return <OrdersView />;
       case 'catalogo':
@@ -165,6 +170,8 @@ export const DashboardLayout: React.FC = () => {
     switch (activeTab) {
       case 'visao-geral':
         return 'Visão geral';
+      case 'agenda':
+        return 'Agenda';
       case 'pedidos':
         return 'Pedidos';
       case 'catalogo':
@@ -557,7 +564,7 @@ export const DashboardLayout: React.FC = () => {
             type="button"
             onClick={() => setMobileMenuOpen(true)}
             className={`flex flex-col items-center justify-center py-1.5 min-h-[50px] transition-colors cursor-pointer ${
-              activeTab === 'preferencias' || activeTab === 'relatorios'
+              activeTab === 'clientes' || activeTab === 'preferencias' || activeTab === 'relatorios'
                 ? 'text-[#D07A6D]'
                 : 'text-[#7C6E68]'
             }`}

@@ -30,8 +30,11 @@ export interface Order {
   customerInitials: string;
   items: OrderItem[];
   totalAmount: number;
+  depositAmount?: number;
   status: OrderStatus;
   deliveryDate: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
   deliveryType: 'retirada' | 'entrega';
   paymentStatus: 'pago' | 'pendente' | '50_sinal';
   createdAt: string;
@@ -69,6 +72,8 @@ export interface StoreProfile {
   whatsapp: string;
   pixKey: string;
   logoUrl?: string;
+  defaultDepositPercent?: number;
+  blockedDates?: string[];
 }
 
 export type StoreStatus = 'active' | 'pending_approval' | 'blocked';
@@ -88,6 +93,9 @@ export interface Store {
   plan: string;
   segment: string;
   logoUrl?: string;
+  defaultDepositPercent?: number;
+  pixKey?: string;
+  blockedDates?: string[];
   blockReason?: string;
   loginPassword?: string;
   approvedAt?: string;

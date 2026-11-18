@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import { useComfy } from '../../context/ComfyContext';
+import {
+  PHONE_DIGITS_LENGTH,
+  extractPhoneDigits,
+  formatPhone11,
+} from '../../utils/validation';
 import { User, Plus, Search, Phone, Mail, MapPin, Heart, ShoppingBag, MessageSquare, X } from 'lucide-react';
 
 export const CustomersView: React.FC = () => {
-  const { customers, addCustomer } = useComfy();
+  const { customers, storeProfile, addCustomer, showToast } = useComfy();
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -21,13 +26,19 @@ export const CustomersView: React.FC = () => {
       c.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const phoneDigits = extractPhoneDigits(phone);
+
   const handleCreateCustomer = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    if (phoneDigits.length !== PHONE_DIGITS_LENGTH) {
+      showToast('O WhatsApp deve conter 11 números (DDD + 9 dígitos).');
+      return;
+    }
 
     addCustomer({
       name: name.trim(),
-      phone: phone.trim() || '(11) 99999-0000',
+      phone: formatPhone11(phoneDigits),
       email: email.trim() || `${name.toLowerCase().replace(/\s+/g, '.')}@email.com`,
       address: address.trim(),
       notes: notes.trim(),
@@ -109,9 +120,9 @@ export const CustomersView: React.FC = () => {
         ) : (
           filteredCustomers.map((cust) => {
           const rawPhone = cust.phone.replace(/\D/g, '');
-          const waLink = `https://wa.me/55${rawPhone}?text=Ol%C3%A1%20${encodeURIComponent(
-            cust.name
-          )}%2C%20tudo%20bem%3F%20Aqui%20%C3%A9%20da%20doceria%20Confy!`;
+          const waLink = `https://api.whatsapp.com/send?phone=55${rawPhone}&text=${encodeURIComponent(
+            `✨ Olá, *${cust.name}*! Tudo bem? Aqui é da doceria *${storeProfile.name || 'Confy'}*! ❤`
+          )}`;
 
           return (
             <div
@@ -222,16 +233,23 @@ export const CustomersView: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                    WhatsApp / Telefone *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-[#7C6E68]">
+                      WhatsApp / Telefone *
+                    </label>
+                    <span className="text-[10px] font-mono text-[#7C6E68]/80">
+                      {phoneDigits.length}/{PHONE_DIGITS_LENGTH}
+                    </span>
+                  </div>
                   <input
                     type="tel"
+                    inputMode="numeric"
                     required
+                    maxLength={15}
                     placeholder="(11) 98765-4321"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-base sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[44px]"
+                    onChange={(e) => setPhone(formatPhone11(e.target.value))}
+                    className="w-full px-3.5 py-2.5 text-base sm:text-sm bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] font-mono min-h-[44px]"
                   />
                 </div>
                 <div>

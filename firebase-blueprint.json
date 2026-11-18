@@ -55,6 +55,26 @@
           "minLength": 0,
           "maxLength": 250000
         },
+        "defaultDepositPercent": {
+          "type": "number",
+          "description": "Default deposit (sinal) percentage (0-100) configured in store preferences."
+        },
+        "pixKey": {
+          "type": "string",
+          "description": "Optional public PIX payment key shared with customers on checkout.",
+          "minLength": 0,
+          "maxLength": 80
+        },
+        "whatsapp": {
+          "type": "string",
+          "description": "Public confectionery WhatsApp order contact number.",
+          "minLength": 0,
+          "maxLength": 20
+        },
+        "blockedDates": {
+          "type": "array",
+          "description": "Optional list of blocked ISO dates (YYYY-MM-DD) when the confectionery is not accepting orders."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -329,6 +349,22 @@
           "description": "Requested delivery or pickup schedule.",
           "minLength": 1,
           "maxLength": 60
+        },
+        "scheduledDate": {
+          "type": "string",
+          "description": "Optional ISO date string (YYYY-MM-DD) for calendar scheduling.",
+          "minLength": 0,
+          "maxLength": 20
+        },
+        "scheduledTime": {
+          "type": "string",
+          "description": "Optional scheduled time (HH:mm) for calendar appointments.",
+          "minLength": 0,
+          "maxLength": 10
+        },
+        "depositAmount": {
+          "type": "number",
+          "description": "Optional deposit (sinal) paid in BRL."
         },
         "deliveryType": {
           "type": "string",

@@ -53,14 +53,18 @@ import {
   MAX_PRODUCT_NAME,
   MAX_PRODUCT_TAG,
   MAX_PRODUCT_UNIT,
+  MAX_SCHEDULED_DATE,
+  MAX_SCHEDULED_TIME,
   MAX_SEGMENT,
   MAX_STORE_LOGO_URL,
   MAX_STORE_NAME,
   sanitizeId,
 } from '../utils/validation';
+import { formatScheduledLabel } from '../utils/orderHelpers';
 
 export type DashboardTab =
   | 'visao-geral'
+  | 'agenda'
   | 'pedidos'
   | 'catalogo'
   | 'clientes'
@@ -134,16 +138,35 @@ interface ComfyContextType {
   salesWeek: SalesDay[];
   isNewOrderModalOpen: boolean;
   setIsNewOrderModalOpen: (open: boolean) => void;
+  prefilledScheduleDate: string;
+  setPrefilledScheduleDate: (dateStr: string) => void;
+  openNewOrderModalWithDate: (dateStr?: string) => void;
+  statusNotification: { order: Order; newStatus: OrderStatus } | null;
+  setStatusNotification: (payload: { order: Order; newStatus: OrderStatus } | null) => void;
   addOrder: (orderData: {
     customerName: string;
     customerPhone: string;
     items: { productId: string; quantity: number }[];
     deliveryDate: string;
+    scheduledDate?: string;
+    scheduledTime?: string;
+    depositAmount?: number;
+    initialStatus?: OrderStatus;
     deliveryType: 'retirada' | 'entrega';
     paymentStatus: 'pago' | 'pendente' | '50_sinal';
     notes?: string;
   }) => Promise<boolean>;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: OrderStatus, promptWhatsApp?: boolean) => Promise<void>;
+  updateOrderPayment: (
+    orderId: string,
+    paymentStatus: 'pago' | 'pendente' | '50_sinal',
+    depositAmount?: number
+  ) => Promise<void>;
+  updateOrderSchedule: (
+    orderId: string,
+    scheduledDate: string,
+    scheduledTime: string
+  ) => Promise<void>;
   deleteOrder: (orderId: string) => Promise<void>;
   addProduct: (productData: Omit<Product, 'id'>) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
@@ -156,6 +179,7 @@ interface ComfyContextType {
     notes?: string;
   }) => Promise<void>;
   updateStoreProfile: (profile: Partial<StoreProfile>) => Promise<void>;
+  toggleBlockedDate: (dateIso: string) => Promise<void>;
   resetAllData: () => Promise<void>;
   toastMessage: string | null;
   showToast: (msg: string) => void;
@@ -174,6 +198,10 @@ interface FirestoreStoreDoc {
   plan: string;
   status: 'active' | 'pending_approval' | 'blocked';
   logoUrl?: string;
+  defaultDepositPercent?: number;
+  pixKey?: string;
+  whatsapp?: string;
+  blockedDates?: string[];
 }
 
 interface FirestoreStoreAccountDoc {
@@ -197,8 +225,11 @@ interface FirestoreOrderDoc {
   customerPhone: string;
   customerInitials: string;
   totalAmount: number;
+  depositAmount?: number;
   status: OrderStatus;
   deliveryDate: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
   deliveryType: 'retirada' | 'entrega';
   paymentStatus: 'pago' | 'pendente' | '50_sinal';
   notes: string;
@@ -270,6 +301,19 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase().slice(0, MAX_CUSTOMER_INITIALS);
 }
 
+const MAX_BLOCKED_DATES = 180;
+
+function normalizeBlockedDates(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const valid = raw.filter(
+    (item): item is string => typeof item === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(item)
+  );
+  const uniqueSorted = Array.from(new Set(valid)).sort();
+  return uniqueSorted.length > MAX_BLOCKED_DATES
+    ? uniqueSorted.slice(uniqueSorted.length - MAX_BLOCKED_DATES)
+    : uniqueSorted;
+}
+
 export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const initialPublicStore = getInitialPublicStoreParam();
 
@@ -293,9 +337,19 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [activeTab, setActiveTab] = useState<DashboardTab>('visao-geral');
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
+  const [prefilledScheduleDate, setPrefilledScheduleDate] = useState('');
+  const [statusNotification, setStatusNotification] = useState<{
+    order: Order;
+    newStatus: OrderStatus;
+  } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [prefilledRegisterEmail, setPrefilledRegisterEmail] = useState('');
   const [isAuthReady] = useState(true);
+
+  const openNewOrderModalWithDate = useCallback((dateStr?: string) => {
+    setPrefilledScheduleDate(dateStr || '');
+    setIsNewOrderModalOpen(true);
+  }, []);
 
   const [rememberSession, setRememberSession] = useState<boolean>(() => {
     return readPersistedValue('comfy_remember_me') !== 'false';
@@ -580,7 +634,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           ownerUid: pub?.ownerUid || acc?.ownerUid,
           name: pub?.name || '',
           ownerName: pub?.ownerDisplayName || '',
-          phone: acc?.phone || '',
+          phone: pub?.whatsapp || acc?.phone || '',
           email: acc?.email || '',
           city: pub?.city || '',
           status: pub?.status || 'pending_approval',
@@ -590,6 +644,10 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           plan: pub?.plan || 'Plano Profissional',
           segment: pub?.segment || 'Doceria & Confeitaria Artesanal',
           logoUrl: pub?.logoUrl || undefined,
+          defaultDepositPercent:
+            typeof pub?.defaultDepositPercent === 'number' ? pub.defaultDepositPercent : 50,
+          pixKey: pub?.pixKey ?? acc?.pixKey ?? '',
+          blockedDates: normalizeBlockedDates(pub?.blockedDates),
           blockReason: acc?.blockReason || undefined,
           loginPassword: acc?.loginPassword || undefined,
           approvedAt: acc?.approvedAtLabel || undefined,
@@ -613,6 +671,9 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       monthlyRevenue: 0,
       plan: 'Plano Profissional',
       segment: 'Doceria & Confeitaria Artesanal',
+      defaultDepositPercent: 50,
+      pixKey: '',
+      blockedDates: [],
     }),
     []
   );
@@ -641,11 +702,48 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       plan: currentStore.plan,
       segment: currentStore.segment,
       city: currentStore.city,
-      whatsapp: acc?.phone || currentStore.phone || '',
-      pixKey: acc?.pixKey || currentStore.email || '',
+      whatsapp: acc?.phone || storeDocsMap[currentStore.id]?.whatsapp || currentStore.phone || '',
+      pixKey: acc?.pixKey ?? currentStore.pixKey ?? '',
       logoUrl: currentStore.logoUrl || undefined,
+      defaultDepositPercent:
+        typeof currentStore.defaultDepositPercent === 'number'
+          ? currentStore.defaultDepositPercent
+          : 50,
+      blockedDates: currentStore.blockedDates || [],
     };
-  }, [currentStore, storeAccountsMap]);
+  }, [currentStore, storeAccountsMap, storeDocsMap]);
+
+  // Backfill public storefront pixKey & whatsapp for active stores configured before this sync
+  useEffect(() => {
+    if (currentUserRole !== 'store' && currentUserRole !== 'superadmin') return;
+
+    const targetIds =
+      currentUserRole === 'superadmin'
+        ? Object.keys(storeDocsMap)
+        : currentStore.id
+        ? [currentStore.id]
+        : [];
+
+    for (const rawId of targetIds) {
+      const pub = storeDocsMap[rawId];
+      const acc = storeAccountsMap[rawId];
+      if (!pub || pub.status !== 'active' || !acc) continue;
+
+      const patch: Record<string, unknown> = {};
+      if (pub.pixKey === undefined && acc.pixKey) {
+        patch.pixKey = clampText(acc.pixKey, MAX_PIX_KEY, '');
+      }
+      if (!pub.whatsapp && acc.phone) {
+        patch.whatsapp = clampText(acc.phone, MAX_PHONE_FORMATTED, '');
+      }
+      if (Object.keys(patch).length > 0) {
+        patch.updatedAt = serverTimestamp();
+        updateDoc(doc(db, 'stores', sanitizeId(rawId, 'store')), patch).catch(() => {
+          // Silent best-effort sync; saving Preferences also syncs
+        });
+      }
+    }
+  }, [currentUserRole, currentStore.id, storeDocsMap, storeAccountsMap]);
 
   // Real-time listeners for active store subcollections (products, orders, orderItems, customers)
   useEffect(() => {
@@ -825,8 +923,11 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       customerInitials: ord.customerInitials,
       items: itemsByOrder[ord.id] || [],
       totalAmount: ord.totalAmount,
+      depositAmount: typeof ord.depositAmount === 'number' ? ord.depositAmount : undefined,
       status: ord.status,
       deliveryDate: ord.deliveryDate,
+      scheduledDate: ord.scheduledDate || undefined,
+      scheduledTime: ord.scheduledTime || undefined,
       deliveryType: ord.deliveryType,
       paymentStatus: ord.paymentStatus,
       createdAt: ord.createdAtIso,
@@ -1168,6 +1269,12 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         status === 'active' ? `Comfy@${Math.floor(1000 + Math.random() * 9000)}` : '';
       const todayLabel = new Date().toLocaleDateString('pt-BR');
 
+      const formattedPhone = clampText(
+        formatPhone11(data.phone) || '(11) 98765-4321',
+        MAX_PHONE_FORMATTED,
+        '(11) 98765-4321'
+      );
+
       const storeDoc = {
         ownerUid,
         name: clampText(data.name, MAX_STORE_NAME, 'Nova Doceria'),
@@ -1175,6 +1282,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         city: clampText(data.city || 'São Paulo, SP', MAX_CITY, 'São Paulo, SP'),
         segment: clampText('Doceria & Confeitaria Artesanal', MAX_SEGMENT, 'Doceria Artesanal'),
         plan: clampText('Plano Profissional', MAX_PLAN, 'Plano Profissional'),
+        whatsapp: formattedPhone,
         status,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -1184,11 +1292,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         storeId,
         ownerUid,
         email: clampText(effectiveEmail, MAX_EMAIL, 'contato@gmail.com'),
-        phone: clampText(
-          formatPhone11(data.phone) || '(11) 98765-4321',
-          MAX_PHONE_FORMATTED,
-          '(11) 98765-4321'
-        ),
+        phone: formattedPhone,
         pixKey: clampText(effectiveEmail, MAX_PIX_KEY, ''),
         loginPassword: clampText(generatedPassword, MAX_PASSWORD, ''),
         blockReason: '',
@@ -1338,6 +1442,10 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       customerPhone: string;
       items: { productId: string; quantity: number }[];
       deliveryDate: string;
+      scheduledDate?: string;
+      scheduledTime?: string;
+      depositAmount?: number;
+      initialStatus?: OrderStatus;
       deliveryType: 'retirada' | 'entrega';
       paymentStatus: 'pago' | 'pendente' | '50_sinal';
       notes?: string;
@@ -1376,26 +1484,58 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const orderId = sanitizeId(`ord-${Date.now()}`, 'ord');
       const cleanCustomerName = clampText(orderData.customerName, MAX_CUSTOMER_NAME, 'Cliente');
 
+      const cleanScheduledDate = clampText(orderData.scheduledDate ?? '', MAX_SCHEDULED_DATE, '');
+      const cleanScheduledTime = clampText(orderData.scheduledTime ?? '', MAX_SCHEDULED_TIME, '');
+
+      if (cleanScheduledDate && (storeProfile.blockedDates || []).includes(cleanScheduledDate)) {
+        showToast('Este dia está bloqueado na agenda da doceria. Escolha outra data disponível.');
+        return false;
+      }
+
+      const formattedSchedule =
+        cleanScheduledDate || cleanScheduledTime
+          ? formatScheduledLabel(cleanScheduledDate, cleanScheduledTime)
+          : orderData.deliveryDate || 'A combinar';
+
+      const defaultRatio = (storeProfile.defaultDepositPercent ?? 50) / 100;
+      const computedDeposit =
+        orderData.paymentStatus === 'pago'
+          ? totalAmount
+          : orderData.paymentStatus === 'pendente'
+          ? 0
+          : typeof orderData.depositAmount === 'number' && Number.isFinite(orderData.depositAmount)
+          ? clampNumber(orderData.depositAmount, 0, totalAmount)
+          : Math.round(totalAmount * defaultRatio * 100) / 100;
+
+      const orderDocPayload: Record<string, unknown> = {
+        storeId,
+        ownerUid: targetOwnerUid,
+        createdByUid: creatorUid,
+        orderNumber: nextOrderNum,
+        customerName: cleanCustomerName,
+        customerPhone: clampText(orderData.customerPhone, MAX_CUSTOMER_PHONE, ''),
+        customerInitials: getInitials(cleanCustomerName),
+        totalAmount,
+        depositAmount: computedDeposit,
+        status: orderData.initialStatus || 'pending',
+        deliveryDate: clampText(formattedSchedule, MAX_DELIVERY_DATE, 'A combinar'),
+        deliveryType: orderData.deliveryType,
+        paymentStatus: orderData.paymentStatus,
+        notes: clampText(orderData.notes ?? '', MAX_ORDER_NOTES, ''),
+        createdAtIso: clampText(new Date().toISOString(), MAX_ISO_DATE, new Date().toISOString()),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      if (cleanScheduledDate) {
+        orderDocPayload.scheduledDate = cleanScheduledDate;
+      }
+      if (cleanScheduledTime) {
+        orderDocPayload.scheduledTime = cleanScheduledTime;
+      }
+
       try {
         const firstBatch = writeBatch(db);
-        firstBatch.set(doc(db, 'stores', storeId, 'orders', orderId), {
-          storeId,
-          ownerUid: targetOwnerUid,
-          createdByUid: creatorUid,
-          orderNumber: nextOrderNum,
-          customerName: cleanCustomerName,
-          customerPhone: clampText(orderData.customerPhone, MAX_CUSTOMER_PHONE, ''),
-          customerInitials: getInitials(cleanCustomerName),
-          totalAmount,
-          status: 'in_production',
-          deliveryDate: clampText(orderData.deliveryDate || 'Hoje', MAX_DELIVERY_DATE, 'Hoje'),
-          deliveryType: orderData.deliveryType,
-          paymentStatus: orderData.paymentStatus,
-          notes: clampText(orderData.notes ?? '', MAX_ORDER_NOTES, ''),
-          createdAtIso: clampText(new Date().toISOString(), MAX_ISO_DATE, new Date().toISOString()),
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
+        firstBatch.set(doc(db, 'stores', storeId, 'orders', orderId), orderDocPayload);
 
         const initialChunk = fullItems.slice(0, 4);
         initialChunk.forEach((it, idx) => {
@@ -1471,6 +1611,7 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         showToast(`Pedido ${nextOrderNum} salvo na nuvem! ✨`);
+        setPrefilledScheduleDate('');
         setIsNewOrderModalOpen(false);
         return true;
       } catch (error) {
@@ -1484,16 +1625,18 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       products,
       orders.length,
       customers,
+      storeProfile.defaultDepositPercent,
+      storeProfile.blockedDates,
       showToast,
     ]
   );
 
   const updateOrderStatus = useCallback(
-    async (orderId: string, status: OrderStatus): Promise<void> => {
+    async (orderId: string, status: OrderStatus, promptWhatsApp = true): Promise<void> => {
       if (!currentStore.id) return;
       const storeId = sanitizeId(currentStore.id, 'store');
-      const existingOrder = rawOrders.find((o) => o.id === orderId);
-      if (existingOrder?.status === 'delivered') {
+      const fullOrder = orders.find((o) => o.id === orderId);
+      if (fullOrder?.status === 'delivered') {
         showToast('Este pedido já foi concluído e entregue.');
         return;
       }
@@ -1506,14 +1649,102 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           in_production: 'Em produção',
           ready: 'Pronto p/ retirada/entrega',
           delivered: 'Entregue / Concluído',
-          pending: 'Pendente',
+          pending: 'Aguardando',
         };
         showToast(`Status atualizado para: ${statusLabels[status]}`);
+        if (promptWhatsApp && fullOrder && currentUserRole !== null) {
+          setStatusNotification({
+            order: { ...fullOrder, status },
+            newStatus: status,
+          });
+        }
       } catch (error) {
         handleFirestoreError(error, OperationType.UPDATE, `stores/${storeId}/orders/${orderId}`);
       }
     },
-    [currentStore.id, rawOrders, showToast]
+    [currentStore.id, currentUserRole, orders, showToast]
+  );
+
+  const updateOrderPayment = useCallback(
+    async (
+      orderId: string,
+      paymentStatus: 'pago' | 'pendente' | '50_sinal',
+      depositAmount?: number
+    ): Promise<void> => {
+      if (!currentStore.id) return;
+      const storeId = sanitizeId(currentStore.id, 'store');
+      const fullOrder = orders.find((o) => o.id === orderId);
+      if (!fullOrder) return;
+
+      const defaultRatio = (storeProfile.defaultDepositPercent ?? 50) / 100;
+      const resolvedDeposit =
+        paymentStatus === 'pago'
+          ? fullOrder.totalAmount
+          : paymentStatus === 'pendente'
+          ? 0
+          : clampNumber(
+              typeof depositAmount === 'number' && Number.isFinite(depositAmount)
+                ? depositAmount
+                : fullOrder.totalAmount * defaultRatio,
+              0,
+              fullOrder.totalAmount
+            );
+
+      try {
+        await updateDoc(doc(db, 'stores', storeId, 'orders', orderId), {
+          paymentStatus,
+          depositAmount: resolvedDeposit,
+          updatedAt: serverTimestamp(),
+        });
+        showToast(
+          paymentStatus === 'pago'
+            ? 'Pagamento total quitado!'
+            : paymentStatus === '50_sinal'
+            ? `Sinal de R$ ${resolvedDeposit.toFixed(2).replace('.', ',')} registrado!`
+            : 'Pagamento atualizado para pendente.'
+        );
+      } catch (error) {
+        handleFirestoreError(error, OperationType.UPDATE, `stores/${storeId}/orders/${orderId}`);
+      }
+    },
+    [currentStore.id, orders, storeProfile.defaultDepositPercent, showToast]
+  );
+
+  const updateOrderSchedule = useCallback(
+    async (orderId: string, scheduledDate: string, scheduledTime: string): Promise<void> => {
+      if (!currentStore.id) return;
+      const storeId = sanitizeId(currentStore.id, 'store');
+      const existingOrder = orders.find((o) => o.id === orderId);
+      if (!existingOrder || existingOrder.status === 'delivered') {
+        showToast('Pedidos já entregues não podem ser reagendados.');
+        return;
+      }
+
+      const cleanDate = clampText(scheduledDate, MAX_SCHEDULED_DATE, '');
+      const cleanTime = clampText(scheduledTime, MAX_SCHEDULED_TIME, '');
+      if (cleanDate && (storeProfile.blockedDates || []).includes(cleanDate)) {
+        showToast('Este dia está bloqueado na agenda. Desbloqueie o dia ou escolha outra data.');
+        return;
+      }
+      const deliveryLabel = clampText(
+        formatScheduledLabel(cleanDate, cleanTime),
+        MAX_DELIVERY_DATE,
+        'A combinar'
+      );
+
+      try {
+        await updateDoc(doc(db, 'stores', storeId, 'orders', orderId), {
+          scheduledDate: cleanDate,
+          scheduledTime: cleanTime,
+          deliveryDate: deliveryLabel,
+          updatedAt: serverTimestamp(),
+        });
+        showToast('Agendamento atualizado com sucesso!');
+      } catch (error) {
+        handleFirestoreError(error, OperationType.UPDATE, `stores/${storeId}/orders/${orderId}`);
+      }
+    },
+    [currentStore.id, orders, storeProfile.blockedDates, showToast]
   );
 
   const deleteOrder = useCallback(
@@ -1699,6 +1930,26 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             ''
           );
         }
+        if (profileUpdate.defaultDepositPercent !== undefined) {
+          storeChanges.defaultDepositPercent = clampNumber(
+            Math.round(profileUpdate.defaultDepositPercent),
+            0,
+            100
+          );
+        }
+        if (profileUpdate.pixKey !== undefined) {
+          storeChanges.pixKey = clampText(profileUpdate.pixKey, MAX_PIX_KEY, '');
+        }
+        if (profileUpdate.whatsapp !== undefined) {
+          storeChanges.whatsapp = clampText(
+            formatPhone11(profileUpdate.whatsapp) || storeProfile.whatsapp || '(11) 98765-4321',
+            MAX_PHONE_FORMATTED,
+            '(11) 98765-4321'
+          );
+        }
+        if (profileUpdate.blockedDates !== undefined) {
+          storeChanges.blockedDates = normalizeBlockedDates(profileUpdate.blockedDates);
+        }
         batch.update(doc(db, 'stores', storeId), storeChanges);
 
         const accountChanges: Record<string, unknown> = {
@@ -1723,6 +1974,34 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     },
     [currentStore, storeProfile.whatsapp, showToast]
+  );
+
+  const toggleBlockedDate = useCallback(
+    async (dateIso: string): Promise<void> => {
+      if (!currentStore.id) return;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) return;
+      const storeId = sanitizeId(currentStore.id, 'store');
+      const currentList = normalizeBlockedDates(storeProfile.blockedDates);
+      const isCurrentlyBlocked = currentList.includes(dateIso);
+      const nextList = isCurrentlyBlocked
+        ? currentList.filter((d) => d !== dateIso)
+        : normalizeBlockedDates([...currentList, dateIso]);
+
+      try {
+        await updateDoc(doc(db, 'stores', storeId), {
+          blockedDates: nextList,
+          updatedAt: serverTimestamp(),
+        });
+        showToast(
+          isCurrentlyBlocked
+            ? 'Dia desbloqueado na agenda! Pedidos liberados para esta data.'
+            : 'Dia bloqueado na agenda! Novos agendamentos bloqueados para esta data.'
+        );
+      } catch (error) {
+        handleFirestoreError(error, OperationType.UPDATE, `stores/${storeId}`);
+      }
+    },
+    [currentStore.id, storeProfile.blockedDates, showToast]
   );
 
   // Clears all store subcollection records in Firestore to zero (never inserts fake demo items)
@@ -1829,14 +2108,22 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         salesWeek,
         isNewOrderModalOpen,
         setIsNewOrderModalOpen,
+        prefilledScheduleDate,
+        setPrefilledScheduleDate,
+        openNewOrderModalWithDate,
+        statusNotification,
+        setStatusNotification,
         addOrder,
         updateOrderStatus,
+        updateOrderPayment,
+        updateOrderSchedule,
         deleteOrder,
         addProduct,
         updateProduct,
         toggleProductStatus,
         addCustomer,
         updateStoreProfile,
+        toggleBlockedDate,
         resetAllData,
         toastMessage,
         showToast,

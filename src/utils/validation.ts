@@ -30,6 +30,8 @@ export const MAX_CUSTOMER_NAME = 80;
 export const MAX_CUSTOMER_PHONE = 25;
 export const MAX_CUSTOMER_INITIALS = 4;
 export const MAX_DELIVERY_DATE = 60;
+export const MAX_SCHEDULED_DATE = 20;
+export const MAX_SCHEDULED_TIME = 10;
 export const MAX_ORDER_NOTES = 500;
 export const MAX_ISO_DATE = 40;
 

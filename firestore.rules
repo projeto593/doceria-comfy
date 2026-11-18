@@ -55,6 +55,10 @@ service cloud.firestore {
           'plan',
           'status',
           'logoUrl',
+          'defaultDepositPercent',
+          'pixKey',
+          'whatsapp',
+          'blockedDates',
           'createdAt',
           'updatedAt'
         ]) &&
@@ -67,6 +71,14 @@ service cloud.firestore {
         data.status is string && data.status.size() >= 6 && data.status.size() <= 20 &&
         (data.status == 'active' || data.status == 'pending_approval' || data.status == 'blocked') &&
         (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 250000)) &&
+        (!('defaultDepositPercent' in data) || (data.defaultDepositPercent is number && data.defaultDepositPercent >= 0 && data.defaultDepositPercent <= 100)) &&
+        (!('pixKey' in data) || (data.pixKey is string && data.pixKey.size() <= 80)) &&
+        (!('whatsapp' in data) || (data.whatsapp is string && data.whatsapp.size() <= 20)) &&
+        (!('blockedDates' in data) || (
+          data.blockedDates is list &&
+          data.blockedDates.size() <= 180 &&
+          (data.blockedDates.size() == 0 || (data.blockedDates[0] is string && data.blockedDates[0].size() == 10))
+        )) &&
         data.createdAt is timestamp &&
         data.updatedAt is timestamp;
     }
@@ -211,6 +223,9 @@ service cloud.firestore {
           'totalAmount',
           'status',
           'deliveryDate',
+          'scheduledDate',
+          'scheduledTime',
+          'depositAmount',
           'deliveryType',
           'paymentStatus',
           'notes',
@@ -229,6 +244,9 @@ service cloud.firestore {
         data.status is string && data.status.size() >= 5 && data.status.size() <= 20 &&
         (data.status == 'pending' || data.status == 'in_production' || data.status == 'ready' || data.status == 'delivered') &&
         data.deliveryDate is string && data.deliveryDate.size() >= 1 && data.deliveryDate.size() <= 60 &&
+        (!('scheduledDate' in data) || (data.scheduledDate is string && data.scheduledDate.size() <= 20)) &&
+        (!('scheduledTime' in data) || (data.scheduledTime is string && data.scheduledTime.size() <= 10)) &&
+        (!('depositAmount' in data) || (data.depositAmount is number && data.depositAmount >= 0 && data.depositAmount <= 1000000)) &&
         data.deliveryType is string && data.deliveryType.size() >= 7 && data.deliveryType.size() <= 10 &&
         (data.deliveryType == 'retirada' || data.deliveryType == 'entrega') &&
         data.paymentStatus is string && data.paymentStatus.size() >= 4 && data.paymentStatus.size() <= 12 &&
@@ -373,6 +391,10 @@ service cloud.firestore {
               'city',
               'segment',
               'logoUrl',
+              'defaultDepositPercent',
+              'pixKey',
+              'whatsapp',
+              'blockedDates',
               'updatedAt'
             ])
           )
@@ -462,19 +484,35 @@ service cloud.firestore {
           incoming().createdAt == existing().createdAt &&
           incoming().createdAtIso == existing().createdAtIso &&
           incoming().updatedAt == request.time &&
-          existing().status != 'delivered' &&
           isParentStoreActive(storeId) &&
           (
-            (existing().status == 'pending' && incoming().status == 'in_production') ||
-            (existing().status == 'in_production' && incoming().status == 'ready') ||
-            (existing().status == 'ready' && incoming().status == 'delivered') ||
-            (incoming().status == existing().status)
-          ) &&
-          incoming().diff(existing()).affectedKeys().hasOnly([
-            'status',
-            'paymentStatus',
-            'updatedAt'
-          ]);
+            (
+              existing().status != 'delivered' &&
+              (
+                (existing().status == 'pending' && incoming().status == 'in_production') ||
+                (existing().status == 'in_production' && incoming().status == 'ready') ||
+                (existing().status == 'ready' && incoming().status == 'delivered') ||
+                (incoming().status == existing().status)
+              ) &&
+              incoming().diff(existing()).affectedKeys().hasOnly([
+                'status',
+                'paymentStatus',
+                'depositAmount',
+                'scheduledDate',
+                'scheduledTime',
+                'deliveryDate',
+                'updatedAt'
+              ])
+            ) ||
+            (
+              incoming().status == existing().status &&
+              incoming().diff(existing()).affectedKeys().hasOnly([
+                'paymentStatus',
+                'depositAmount',
+                'updatedAt'
+              ])
+            )
+          );
 
         allow delete: if isValidId(storeId) &&
           isValidId(orderId) &&

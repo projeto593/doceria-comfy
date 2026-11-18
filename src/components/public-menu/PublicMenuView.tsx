@@ -2,6 +2,18 @@ import React, { useState } from 'react';
 import { useComfy } from '../../context/ComfyContext';
 import { Logo } from '../common/Logo';
 import {
+  buildWhatsAppUrl,
+  buildWhatsAppWebUrl,
+  formatScheduledLabel,
+  isMobileDevice,
+  openExternalLinkSafely,
+} from '../../utils/orderHelpers';
+import {
+  PHONE_DIGITS_LENGTH,
+  extractPhoneDigits,
+  formatPhone11,
+} from '../../utils/validation';
+import {
   ShoppingBag,
   Plus,
   Minus,
@@ -13,6 +25,11 @@ import {
   Sparkles,
   X,
   Send,
+  Info,
+  Copy,
+  Check,
+  ExternalLink,
+  Lock,
 } from 'lucide-react';
 
 export const PublicMenuView: React.FC = () => {
@@ -33,10 +50,15 @@ export const PublicMenuView: React.FC = () => {
   const [orderCompleted, setOrderCompleted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState('');
+  const [lastWhatsAppWebUrl, setLastWhatsAppWebUrl] = useState('');
+  const [lastFormattedMessage, setLastFormattedMessage] = useState('');
+  const [copiedMessage, setCopiedMessage] = useState(false);
 
   // Checkout form
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
   const [deliveryType, setDeliveryType] = useState<'retirada' | 'entrega'>('retirada');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
@@ -69,51 +91,120 @@ export const PublicMenuView: React.FC = () => {
     return sum + (prod ? prod.price * qty : 0);
   }, 0);
 
+  const depositPercent = storeProfile.defaultDepositPercent ?? 50;
+  const depositAmountRequired =
+    depositPercent > 0
+      ? Math.round(totalAmount * (depositPercent / 100) * 100) / 100
+      : 0;
+  const remainingOnDelivery = Math.max(0, totalAmount - depositAmountRequired);
+  const cleanPixKey = (storeProfile.pixKey || '').trim();
+
   const rawStorePhone = storeProfile.whatsapp.replace(/\D/g, '');
-  const headerWhatsAppHref = rawStorePhone
-    ? `https://wa.me/55${rawStorePhone}`
-    : `https://wa.me/?text=${encodeURIComponent(`Olá ${storeProfile.name}! Gostaria de fazer uma encomenda.`)}`;
+  const headerWhatsAppHref = buildWhatsAppUrl(
+    storeProfile.whatsapp,
+    `✨ Olá, *${storeProfile.name}*! Gostaria de fazer uma encomenda.`
+  );
+
+  const customerPhoneDigits = extractPhoneDigits(customerPhone);
+  const isScheduledDateBlocked = Boolean(
+    scheduledDate && (storeProfile.blockedDates || []).includes(scheduledDate)
+  );
 
   const handleFinishOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim() || totalItemsCount === 0 || isSubmitting) return;
+    if (customerPhoneDigits.length !== PHONE_DIGITS_LENGTH) {
+      showToast('Informe um WhatsApp válido com 11 números (DDD + 9 dígitos).');
+      return;
+    }
+    if (isScheduledDateBlocked) {
+      showToast('Esta data está bloqueada na agenda da doceria. Escolha outra data disponível.');
+      return;
+    }
 
     const items = Object.entries(cart).map(([productId, quantity]) => ({
       productId,
       quantity,
     }));
 
-    // Format WhatsApp message
+    // Rich formatted WhatsApp message (full emojis + line breaks for Mobile, WhatsApp Web & Clipboard)
     const itemLines = items
       .map((it) => {
         const prod = products.find((p) => p.id === it.productId);
-        return `• ${it.quantity}x ${prod?.name || 'Doce'} (R$ ${(
-          (prod?.price || 0) * it.quantity
-        ).toFixed(2)})`;
+        const linePrice = ((prod?.price || 0) * it.quantity).toFixed(2).replace('.', ',');
+        return `• ${it.quantity}x ${prod?.name || 'Doce'} — R$ ${linePrice}`;
       })
       .join('\n');
 
-    const message = encodeURIComponent(
-      `Olá ${storeProfile.ownerName}! Vi o cardápio da *${storeProfile.name}* e quero fazer um pedido:\n\n${itemLines}\n\n*Total: R$ ${totalAmount
-        .toFixed(2)
-        .replace('.', ',')}*\n*Nome:* ${customerName}\n*Tipo:* ${
-        deliveryType === 'retirada' ? 'Retirada no Ateliê' : `Entrega (${address})`
-      }${notes ? `\n*Observações:* ${notes}` : ''}`
-    );
+    const scheduleLabel =
+      scheduledDate || scheduledTime
+        ? formatScheduledLabel(scheduledDate, scheduledTime)
+        : 'A combinar';
 
-    const waUrl = rawStorePhone
-      ? `https://wa.me/55${rawStorePhone}?text=${message}`
-      : `https://wa.me/?text=${message}`;
+    const depositSection =
+      depositPercent > 0 && depositAmountRequired > 0
+        ? `\n• *Sinal para confirmação (${depositPercent}%):* R$ ${depositAmountRequired
+            .toFixed(2)
+            .replace('.', ',')}${
+            remainingOnDelivery > 0.01
+              ? `\n• *Restante na ${deliveryType === 'retirada' ? 'retirada' : 'entrega'}:* R$ ${remainingOnDelivery
+                  .toFixed(2)
+                  .replace('.', ',')}`
+              : ''
+          }`
+        : '';
 
+    const deliveryLabel =
+      deliveryType === 'retirada'
+        ? 'Retirada no Ateliê'
+        : `Entrega Delivery${address.trim() ? ` (${address.trim()})` : ''}`;
+
+    const pixLine = cleanPixKey ? `\n• *Chave PIX da doceria:* ${cleanPixKey}` : '';
+
+    const richMessage = [
+      `✨ *NOVO PEDIDO — ${storeProfile.name}* ✨`,
+      '',
+      `Olá, *${storeProfile.ownerName}*! Vi o cardápio e quero fazer uma encomenda:`,
+      '',
+      `🧁 *ITENS DO PEDIDO*`,
+      itemLines,
+      '',
+      `────────────────────`,
+      `💰 *RESUMO DE VALORES*`,
+      `• *Total:* R$ ${totalAmount.toFixed(2).replace('.', ',')}${depositSection}${pixLine}`,
+      '',
+      `────────────────────`,
+      `📅 *DADOS & AGENDAMENTO*`,
+      `• *Cliente:* ${customerName.trim()}`,
+      `• *WhatsApp:* ${formatPhone11(customerPhoneDigits)}`,
+      `• *Modalidade:* ${deliveryLabel}`,
+      ...(scheduledDate || scheduledTime ? [`• *Agendamento:* ${scheduleLabel}`] : []),
+      ...(notes.trim() ? [`📝 *Observações:* ${notes.trim()}`] : []),
+      '',
+      depositPercent > 0 && depositAmountRequired > 0
+        ? cleanPixKey
+          ? `Vou enviar o comprovante do sinal via PIX para confirmação do pedido! ❤️`
+          : `Aguardo a confirmação e os dados do PIX para o envio do sinal! ❤️`
+        : `Aguardo a confirmação do pedido! ❤️`,
+    ].join('\n');
+
+    const waUrl = buildWhatsAppUrl(storeProfile.whatsapp, richMessage);
+    const waWebUrl = buildWhatsAppWebUrl(storeProfile.whatsapp, richMessage);
+
+    setLastFormattedMessage(richMessage);
     setLastWhatsAppUrl(waUrl);
+    setLastWhatsAppWebUrl(waWebUrl);
+    setCopiedMessage(false);
     setIsSubmitting(true);
 
     try {
-      await addOrder({
+      const ok = await addOrder({
         customerName: customerName.trim(),
-        customerPhone: customerPhone.trim() || '(11) 99999-0000',
+        customerPhone: formatPhone11(customerPhoneDigits),
         items,
-        deliveryDate: 'A combinar',
+        deliveryDate: scheduleLabel,
+        scheduledDate: scheduledDate || undefined,
+        scheduledTime: scheduledTime || undefined,
         deliveryType,
         paymentStatus: 'pendente',
         notes: notes.trim()
@@ -123,13 +214,17 @@ export const PublicMenuView: React.FC = () => {
           : undefined,
       });
 
-      const anchor = document.createElement('a');
-      anchor.href = waUrl;
-      anchor.target = '_blank';
-      anchor.rel = 'noopener noreferrer';
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
+      if (!ok) return;
+
+      // Copy complete formatted message with emojis & line breaks so desktop users can paste if desired
+      try {
+        await navigator.clipboard.writeText(richMessage);
+        setCopiedMessage(true);
+      } catch {
+        // Ignore clipboard errors if blocked by iframe/browser policy
+      }
+
+      openExternalLinkSafely(isMobileDevice() ? waUrl : waWebUrl);
 
       setOrderCompleted(true);
     } finally {
@@ -416,28 +511,144 @@ export const PublicMenuView: React.FC = () => {
             </div>
 
             {orderCompleted ? (
-              <div className="p-6 sm:p-8 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8" />
+              <div className="p-5 sm:p-7 text-center space-y-4 overflow-y-auto">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-7 h-7" />
                 </div>
                 <h3 className="text-xl font-serif font-bold text-[#231818]">
                   Pedido Registrado com Sucesso! ✨
                 </h3>
                 <p className="text-xs text-[#7C6E68] leading-relaxed max-w-md mx-auto">
                   Sua encomenda já foi sincronizada no painel da doceria{' '}
-                  <strong>{storeProfile.name}</strong>. Clique abaixo caso a conversa do WhatsApp não
-                  tenha aberto automaticamente.
+                  <strong>{storeProfile.name}</strong>.{' '}
+                  {depositPercent > 0 && depositAmountRequired > 0 && (
+                    <>
+                      Envie a mensagem no WhatsApp e realize o pagamento do sinal de{' '}
+                      <strong className="text-[#231818]">
+                        R$ {depositAmountRequired.toFixed(2).replace('.', ',')}
+                      </strong>{' '}
+                      ({depositPercent}%) para confirmar a produção.
+                    </>
+                  )}
                 </p>
-                {lastWhatsAppUrl && (
-                  <a
-                    href={lastWhatsAppUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors min-h-[44px]"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Abrir Conversa no WhatsApp</span>
-                  </a>
+
+                {cleanPixKey && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center justify-between gap-2 text-left">
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">
+                        Chave PIX para Pagamento
+                      </span>
+                      <p className="text-xs font-mono font-bold text-[#231818] truncate mt-0.5">
+                        {cleanPixKey}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(cleanPixKey);
+                        showToast('Chave PIX copiada!');
+                      }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 border border-amber-200 text-[11px] font-bold text-amber-950 shrink-0 cursor-pointer"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>Copiar PIX</span>
+                    </button>
+                  </div>
+                )}
+
+                {lastFormattedMessage && (
+                  <div className="text-left bg-[#FBF8F3] border border-[#EFE8DE] rounded-2xl p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#7C6E68]">
+                        Prévia da Mensagem Formatada
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(lastFormattedMessage);
+                          setCopiedMessage(true);
+                          showToast('Mensagem completa copiada! Cole no WhatsApp com Ctrl+V.');
+                          setTimeout(() => setCopiedMessage(false), 2500);
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#D07A6D] hover:underline cursor-pointer"
+                      >
+                        {copiedMessage ? (
+                          <Check className="w-3 h-3 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                        <span>{copiedMessage ? 'Copiada!' : 'Copiar com emojis'}</span>
+                      </button>
+                    </div>
+                    <pre className="text-[11px] text-[#231818] whitespace-pre-wrap font-sans leading-relaxed max-h-40 overflow-y-auto bg-white p-2.5 rounded-xl border border-[#EFE8DE]">
+                      {lastFormattedMessage}
+                    </pre>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2">
+                  {isMobileDevice() ? (
+                    <>
+                      {lastWhatsAppUrl && (
+                        <a
+                          href={lastWhatsAppUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors min-h-[44px]"
+                        >
+                          <MessageCircle className="w-4 h-4 shrink-0" />
+                          <span>
+                            {rawStorePhone
+                              ? `Enviar no WhatsApp da ${storeProfile.name}`
+                              : 'Abrir WhatsApp'}
+                          </span>
+                        </a>
+                      )}
+                      {lastWhatsAppWebUrl && (
+                        <a
+                          href={lastWhatsAppWebUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#FBF8F3] hover:bg-[#EFE8DE] text-[#231818] border border-[#EFE8DE] text-xs font-semibold transition-colors min-h-[42px]"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                          <span>WhatsApp Web</span>
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {lastWhatsAppWebUrl && (
+                        <a
+                          href={lastWhatsAppWebUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors min-h-[42px]"
+                        >
+                          <MessageCircle className="w-4 h-4 shrink-0" />
+                          <span>WhatsApp Web (com emojis)</span>
+                        </a>
+                      )}
+                      {lastWhatsAppUrl && (
+                        <a
+                          href={lastWhatsAppUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#FBF8F3] hover:bg-[#EFE8DE] text-[#231818] border border-[#EFE8DE] text-xs font-semibold transition-colors min-h-[42px]"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                          <span>App WhatsApp</span>
+                        </a>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {!rawStorePhone && (
+                  <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                    O WhatsApp desta doceria ainda não foi sincronizado. Copie a mensagem acima ou
+                    peça para a doceria salvar as <strong>Preferências</strong> no painel.
+                  </p>
                 )}
                 <div className="pt-2 flex items-center justify-center gap-3">
                   <button
@@ -506,16 +717,29 @@ export const PublicMenuView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
-                    Seu WhatsApp *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-[#7C6E68]">
+                      Seu WhatsApp *
+                    </label>
+                    <span
+                      className={`text-[10px] font-mono ${
+                        customerPhoneDigits.length === PHONE_DIGITS_LENGTH
+                          ? 'text-emerald-700 font-semibold'
+                          : 'text-[#7C6E68]/80'
+                      }`}
+                    >
+                      {customerPhoneDigits.length}/{PHONE_DIGITS_LENGTH} números
+                    </span>
+                  </div>
                   <input
                     type="tel"
+                    inputMode="numeric"
                     required
+                    maxLength={15}
                     placeholder="(11) 98765-4321"
                     value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[44px]"
+                    onChange={(e) => setCustomerPhone(formatPhone11(e.target.value))}
+                    className="w-full px-3.5 py-2.5 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] font-mono min-h-[44px]"
                   />
                 </div>
 
@@ -567,6 +791,39 @@ export const PublicMenuView: React.FC = () => {
 
                 <div>
                   <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
+                    Preferência de Data e Hora (Opcional)
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      className={`w-full px-3 py-2 text-base sm:text-xs bg-[#FBF8F3] border rounded-xl focus:outline-hidden min-h-[42px] ${
+                        isScheduledDateBlocked
+                          ? 'border-rose-400 focus:border-rose-500 text-rose-900'
+                          : 'border-[#EFE8DE] focus:border-[#D07A6D]'
+                      }`}
+                    />
+                    <input
+                      type="time"
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="w-full px-3 py-2 text-base sm:text-xs bg-[#FBF8F3] border border-[#EFE8DE] rounded-xl focus:outline-hidden focus:border-[#D07A6D] min-h-[42px]"
+                    />
+                  </div>
+                  {isScheduledDateBlocked && (
+                    <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-2 text-[11px] text-rose-900">
+                      <Lock className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Data indisponível:</strong> esta data foi bloqueada na agenda da doceria.
+                        Por favor, escolha outro dia para sua encomenda.
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-[#7C6E68] block mb-1">
                     Frase para o Bolo ou Observações
                   </label>
                   <textarea
@@ -578,6 +835,63 @@ export const PublicMenuView: React.FC = () => {
                   />
                 </div>
 
+                {((depositPercent > 0 && depositAmountRequired > 0) || cleanPixKey) && (
+                  <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-2.5">
+                    <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                    <div className="text-xs text-amber-950 leading-relaxed flex-1 min-w-0">
+                      {depositPercent > 0 && depositAmountRequired > 0 ? (
+                        <>
+                          <p className="font-bold">
+                            Sinal para confirmação ({depositPercent}%):{' '}
+                            <span className="font-serif text-sm text-[#B85848] tabular-nums">
+                              R$ {depositAmountRequired.toFixed(2).replace('.', ',')}
+                            </span>
+                          </p>
+                          <p className="text-[11px] text-amber-900/90 mt-0.5">
+                            Para confirmar sua encomenda, é necessário o pagamento do sinal de{' '}
+                            <strong className="tabular-nums">
+                              R$ {depositAmountRequired.toFixed(2).replace('.', ',')}
+                            </strong>{' '}
+                            via PIX.
+                            {remainingOnDelivery > 0.01 && (
+                              <>
+                                {' '}
+                                O restante de{' '}
+                                <strong className="tabular-nums">
+                                  R$ {remainingOnDelivery.toFixed(2).replace('.', ',')}
+                                </strong>{' '}
+                                será pago na {deliveryType === 'retirada' ? 'retirada' : 'entrega'}.
+                              </>
+                            )}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="font-bold">Pagamento via PIX disponível</p>
+                      )}
+
+                      {cleanPixKey && (
+                        <div className="mt-2 pt-2 border-t border-amber-200/80 flex items-center justify-between gap-2">
+                          <span className="text-[11px] text-amber-950 truncate">
+                            <strong>Chave PIX:</strong>{' '}
+                            <span className="font-mono font-semibold">{cleanPixKey}</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(cleanPixKey);
+                              showToast('Chave PIX copiada!');
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 text-[10px] font-bold text-amber-950 shrink-0 cursor-pointer"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>Copiar</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="pt-3 border-t border-[#EFE8DE] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3">
                   <button
                     type="button"
@@ -588,7 +902,8 @@ export const PublicMenuView: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 min-h-[46px] cursor-pointer"
+                    disabled={isSubmitting || isScheduledDateBlocked}
+                    className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 min-h-[46px] cursor-pointer"
                   >
                     <MessageCircle className="w-4 h-4 shrink-0" />
                     <span>Confirmar no WhatsApp (R$ {totalAmount.toFixed(2).replace('.', ',')})</span>
