@@ -190,26 +190,27 @@ export const DashboardLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#FBF8F3] text-[#231818] flex flex-col lg:flex-row antialiased">
       {/* Top Bar for Mobile & Tablet (< 1024px) */}
-      <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-3.5 sm:px-6 py-3 bg-[#261A1A] text-white border-b border-white/10 shadow-sm gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 bg-[#261A1A] text-white border-b border-white/10 shadow-sm gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 -ml-1 text-white/85 hover:text-white rounded-xl hover:bg-white/10 min-w-[40px] min-h-[40px] flex items-center justify-center cursor-pointer shrink-0"
+            className="p-2 -ml-1.5 text-white/85 hover:text-white rounded-xl hover:bg-white/10 min-w-[40px] min-h-[40px] flex items-center justify-center cursor-pointer shrink-0"
             aria-label="Abrir menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <Logo variant="light" size="sm" onClick={() => setViewMode('landing')} />
+          <Logo variant="light" size="sm" className="shrink-0" />
 
-          <div className="h-4 w-px bg-white/20 hidden xs:block sm:block shrink-0" />
-          <span className="text-xs font-semibold text-white/90 truncate max-w-[120px] sm:max-w-[220px]">
+          <div className="h-4 w-px bg-white/20 shrink-0" />
+
+          <span className="text-xs font-medium text-[#E5B5AC] truncate max-w-[115px] sm:max-w-[220px]">
             {storeProfile.name}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           <div className="hidden sm:flex items-center gap-2 pr-1">
             {storeProfile.logoUrl ? (
               <img
@@ -241,17 +242,8 @@ export const DashboardLayout: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setViewMode('landing')}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors cursor-pointer min-h-[38px] whitespace-nowrap shrink-0"
-            title="Ir para o início mantendo seu login conectado"
-          >
-            <span>Início</span>
-          </button>
-
-          <button
-            type="button"
             onClick={logout}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-red-500/25 border border-white/15 hover:border-red-400/40 text-white hover:text-red-100 text-xs font-semibold transition-colors cursor-pointer min-h-[38px] whitespace-nowrap shrink-0"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/8 hover:bg-red-500/25 border border-white/15 hover:border-red-400/40 text-white hover:text-red-100 text-xs font-semibold transition-colors cursor-pointer min-h-[38px] whitespace-nowrap shrink-0"
             title="Encerrar sessão neste aparelho"
           >
             <LogOut className="w-3.5 h-3.5 text-[#E5B5AC]" />
@@ -309,7 +301,7 @@ export const DashboardLayout: React.FC = () => {
         <div className="space-y-6">
           {/* Header with Logo and Close on Mobile/Tablet */}
           <div className="flex items-center justify-between pt-1">
-            <Logo variant="light" size="md" onClick={() => setViewMode('landing')} />
+            <Logo variant="light" size="md" />
             <button
               type="button"
               onClick={() => setMobileMenuOpen(false)}

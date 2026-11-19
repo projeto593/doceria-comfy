@@ -102,7 +102,7 @@ export const RegisterStoreView: React.FC = () => {
       <div className="min-h-screen bg-[#FBF8F3] text-[#231818] flex flex-col justify-between py-8 sm:py-10 px-4 sm:px-6 lg:px-8 antialiased">
         {/* Top Header */}
         <div className="max-w-xl w-full mx-auto flex items-center justify-between mb-6 sm:mb-8">
-          <Logo variant="dark" size="md" onClick={() => setViewMode('landing')} />
+          <Logo variant="dark" size="md" />
           <button
             onClick={() => setViewMode('landing')}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#7C6E68] hover:text-[#231818] transition-colors cursor-pointer"
@@ -200,7 +200,7 @@ export const RegisterStoreView: React.FC = () => {
     <div className="min-h-screen bg-[#FBF8F3] text-[#231818] flex flex-col justify-between py-8 sm:py-10 px-4 sm:px-6 lg:px-8 antialiased">
       {/* Top Header */}
       <div className="max-w-xl w-full mx-auto flex items-center justify-between mb-6 sm:mb-8">
-        <Logo variant="dark" size="md" onClick={() => setViewMode('landing')} />
+        <Logo variant="dark" size="md" />
         <button
           onClick={() => setViewMode('landing')}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#7C6E68] hover:text-[#231818] transition-colors cursor-pointer"

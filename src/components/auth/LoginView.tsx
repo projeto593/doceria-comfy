@@ -132,7 +132,7 @@ export const LoginView: React.FC = () => {
     <div className="min-h-screen bg-[#FBF8F3] text-[#231818] flex flex-col justify-between py-8 px-4 sm:px-6 lg:px-8 antialiased">
       {/* Top Header */}
       <div className="max-w-md w-full mx-auto flex items-center justify-between mb-6">
-        <Logo variant="dark" size="md" onClick={() => setViewMode('landing')} />
+        <Logo variant="dark" size="md" />
         <button
           type="button"
           onClick={() => setViewMode('landing')}

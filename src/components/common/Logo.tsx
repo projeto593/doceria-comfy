@@ -4,10 +4,9 @@ interface LogoProps {
   variant?: 'light' | 'dark';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
-  onClick?: () => void;
 }
 
-export const Logo: React.FC<LogoProps> = ({ variant = 'dark', size = 'md', className = '', onClick }) => {
+export const Logo: React.FC<LogoProps> = ({ variant = 'dark', size = 'md', className = '' }) => {
   const isLight = variant === 'light';
 
   const iconSizes = {
@@ -23,12 +22,7 @@ export const Logo: React.FC<LogoProps> = ({ variant = 'dark', size = 'md', class
   };
 
   return (
-    <div
-      onClick={onClick}
-      className={`inline-flex items-center gap-2.5 select-none ${
-        onClick ? 'cursor-pointer transition-opacity hover:opacity-90' : ''
-      } ${className}`}
-    >
+    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
       {/* Terracotta signature organic rounded icon */}
       <div
         className={`${iconSizes[size]} rounded-[40%_60%_70%_30%/40%_50%_60%_50%] bg-[#D07A6D] text-white flex items-center justify-center font-bold shadow-xs transition-transform duration-300 hover:rotate-6`}

@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -171,6 +172,7 @@ interface ComfyContextType {
   addProduct: (productData: Omit<Product, 'id'>) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
   toggleProductStatus: (productId: string) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
   addCustomer: (customerData: {
     name: string;
     phone: string;
@@ -178,6 +180,8 @@ interface ComfyContextType {
     address?: string;
     notes?: string;
   }) => Promise<void>;
+  updateCustomer: (customer: Customer) => Promise<void>;
+  deleteCustomer: (customerId: string) => Promise<void>;
   updateStoreProfile: (profile: Partial<StoreProfile>) => Promise<void>;
   toggleBlockedDate: (dateIso: string) => Promise<void>;
   resetAllData: () => Promise<void>;
@@ -1852,6 +1856,21 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [currentStore.id, products]
   );
 
+  const deleteProduct = useCallback(
+    async (productId: string): Promise<void> => {
+      if (!currentStore.id) return;
+      const storeId = sanitizeId(currentStore.id, 'store');
+      const prod = products.find((p) => p.id === productId);
+      try {
+        await deleteDoc(doc(db, 'stores', storeId, 'products', sanitizeId(productId, 'prod')));
+        showToast(prod ? `"${prod.name}" excluído do catálogo.` : 'Produto excluído do catálogo.');
+      } catch (error) {
+        handleFirestoreError(error, OperationType.DELETE, `stores/${storeId}/products/${productId}`);
+      }
+    },
+    [currentStore.id, products, showToast]
+  );
+
   const addCustomer = useCallback(
     async (customerData: {
       name: string;
@@ -1891,6 +1910,46 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     },
     [currentStore.id, currentStore.ownerUid, showToast]
+  );
+
+  const updateCustomer = useCallback(
+    async (updated: Customer): Promise<void> => {
+      if (!currentStore.id) return;
+      const storeId = sanitizeId(currentStore.id, 'store');
+      const custId = sanitizeId(updated.id, 'cust');
+      const cleanName = clampText(updated.name, MAX_CUSTOMER_NAME, 'Cliente');
+
+      try {
+        await updateDoc(doc(db, 'stores', storeId, 'customers', custId), {
+          name: cleanName,
+          initials: getInitials(cleanName),
+          phone: clampText(updated.phone, MAX_CUSTOMER_PHONE, ''),
+          email: clampText(updated.email, MAX_CUSTOMER_EMAIL, ''),
+          address: clampText(updated.address ?? '', MAX_CUSTOMER_ADDRESS, ''),
+          notes: clampText(updated.notes ?? '', MAX_CUSTOMER_NOTES, ''),
+          updatedAt: serverTimestamp(),
+        });
+        showToast(`Cliente "${cleanName}" atualizado com sucesso.`);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.UPDATE, `stores/${storeId}/customers/${custId}`);
+      }
+    },
+    [currentStore.id, showToast]
+  );
+
+  const deleteCustomer = useCallback(
+    async (customerId: string): Promise<void> => {
+      if (!currentStore.id) return;
+      const storeId = sanitizeId(currentStore.id, 'store');
+      const cust = customers.find((c) => c.id === customerId);
+      try {
+        await deleteDoc(doc(db, 'stores', storeId, 'customers', sanitizeId(customerId, 'cust')));
+        showToast(cust ? `Cliente "${cust.name}" excluído.` : 'Cliente excluído.');
+      } catch (error) {
+        handleFirestoreError(error, OperationType.DELETE, `stores/${storeId}/customers/${customerId}`);
+      }
+    },
+    [currentStore.id, customers, showToast]
   );
 
   const updateStoreProfile = useCallback(
@@ -2121,7 +2180,10 @@ export const ComfyProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addProduct,
         updateProduct,
         toggleProductStatus,
+        deleteProduct,
         addCustomer,
+        updateCustomer,
+        deleteCustomer,
         updateStoreProfile,
         toggleBlockedDate,
         resetAllData,

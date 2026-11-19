@@ -27,6 +27,8 @@ export const PreferencesView: React.FC = () => {
     storeProfile.defaultDepositPercent ?? 50
   );
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'remove_logo' | 'reset_all' | null>(null);
+  const [isConfirmingAction, setIsConfirmingAction] = useState(false);
 
   const logoInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,9 +76,20 @@ export const PreferencesView: React.FC = () => {
     e.target.value = '';
   };
 
-  const handleRemoveLogo = async () => {
-    setLogoUrl('');
-    await updateStoreProfile({ logoUrl: '' });
+  const handleConfirmAction = async () => {
+    if (!confirmAction || isConfirmingAction) return;
+    setIsConfirmingAction(true);
+    try {
+      if (confirmAction === 'remove_logo') {
+        setLogoUrl('');
+        await updateStoreProfile({ logoUrl: '' });
+      } else if (confirmAction === 'reset_all') {
+        await resetAllData();
+      }
+      setConfirmAction(null);
+    } finally {
+      setIsConfirmingAction(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -178,7 +191,7 @@ export const PreferencesView: React.FC = () => {
                   <button
                     type="button"
                     disabled={isUploadingLogo}
-                    onClick={handleRemoveLogo}
+                    onClick={() => setConfirmAction('remove_logo')}
                     className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-white hover:bg-red-50 text-red-600 border border-[#EFE8DE] hover:border-red-200 text-xs font-semibold transition-colors cursor-pointer min-h-[38px]"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -361,7 +374,7 @@ export const PreferencesView: React.FC = () => {
         <div className="pt-4 border-t border-[#EFE8DE] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <button
             type="button"
-            onClick={resetAllData}
+            onClick={() => setConfirmAction('reset_all')}
             className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-xs text-[#7C6E68] hover:text-red-600 transition-colors py-2 cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Zerar catálogo, pedidos e clientes desta loja
@@ -376,6 +389,58 @@ export const PreferencesView: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Modal Confirmar Remoção de Logo ou Limpeza Total */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#EFE8DE] overflow-hidden p-5 sm:p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                {confirmAction === 'remove_logo' ? (
+                  <Trash2 className="w-5 h-5" />
+                ) : (
+                  <RotateCcw className="w-5 h-5" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-base font-serif font-bold text-[#231818]">
+                  {confirmAction === 'remove_logo'
+                    ? 'Tem certeza que deseja remover a logo?'
+                    : 'Tem certeza que deseja apagar tudo desta loja?'}
+                </h3>
+                <p className="text-xs text-[#7C6E68] mt-1 leading-relaxed">
+                  {confirmAction === 'remove_logo'
+                    ? 'A foto da marca será removida do painel e do seu cardápio digital.'
+                    : 'Todos os produtos do catálogo, pedidos e clientes cadastrados nesta loja serão apagados permanentemente. Esta ação não pode ser desfeita.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={isConfirmingAction}
+                onClick={() => setConfirmAction(null)}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3] cursor-pointer min-h-[40px]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isConfirmingAction}
+                onClick={handleConfirmAction}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-60 cursor-pointer min-h-[40px]"
+              >
+                {isConfirmingAction
+                  ? 'Apagando...'
+                  : confirmAction === 'remove_logo'
+                  ? 'Sim, remover logo'
+                  : 'Sim, apagar tudo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

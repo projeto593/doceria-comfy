@@ -13,7 +13,6 @@ import {
   Mail,
   MapPin,
   X,
-  ArrowLeft,
   Key,
   Copy,
   Check,
@@ -255,7 +254,7 @@ export const SuperAdminView: React.FC = () => {
       <header className="bg-[#261A1A] text-white border-b border-white/10 px-4 sm:px-6 py-3.5 sm:py-5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-4">
-            <Logo variant="light" size="sm" onClick={() => setViewMode('landing')} />
+            <Logo variant="light" size="sm" />
             <div className="h-6 w-px bg-white/20 hidden sm:block" />
             <span className="text-[11px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-lg bg-[#D07A6D] text-white flex items-center gap-1.5 whitespace-nowrap">
               <span>👑 Super Adm</span>
@@ -274,15 +273,6 @@ export const SuperAdminView: React.FC = () => {
             >
               <Key className="w-3.5 h-3.5 text-[#D07A6D]" />
               <span>Senha Adm</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('landing')}
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 min-h-[36px] rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium text-white transition-colors cursor-pointer shrink-0"
-              title="Voltar para a tela inicial mantendo seu login conectado"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Início</span>
             </button>
             <button
               type="button"

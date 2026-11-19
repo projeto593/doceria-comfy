@@ -37,6 +37,19 @@ export const OrdersView: React.FC = () => {
   // Inline deposit ("sinal") editing per order
   const [depositEditOrderId, setDepositEditOrderId] = useState<string | null>(null);
   const [depositEditValue, setDepositEditValue] = useState<string>('');
+  const [confirmDeleteOrder, setConfirmDeleteOrder] = useState<Order | null>(null);
+  const [isDeletingOrder, setIsDeletingOrder] = useState(false);
+
+  const handleConfirmDeleteOrder = async () => {
+    if (!confirmDeleteOrder || isDeletingOrder) return;
+    setIsDeletingOrder(true);
+    try {
+      await deleteOrder(confirmDeleteOrder.id);
+      setConfirmDeleteOrder(null);
+    } finally {
+      setIsDeletingOrder(false);
+    }
+  };
 
   const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
     in_production: { label: 'Em produção', color: 'text-[#D07A6D]', bg: 'bg-[#D07A6D]/15' },
@@ -236,7 +249,7 @@ export const OrdersView: React.FC = () => {
                       </span>
                       <button
                         type="button"
-                        onClick={() => deleteOrder(order.id)}
+                        onClick={() => setConfirmDeleteOrder(order)}
                         className="text-[#7C6E68]/50 hover:text-red-500 transition-colors p-1 cursor-pointer"
                         title="Excluir pedido"
                       >
@@ -464,6 +477,51 @@ export const OrdersView: React.FC = () => {
           })
         )}
       </div>
+
+      {/* Modal Confirmar Exclusão de Pedido */}
+      {confirmDeleteOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-[#EFE8DE] overflow-hidden p-5 sm:p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-serif font-bold text-[#231818]">
+                  Tem certeza que deseja apagar este pedido?
+                </h3>
+                <p className="text-xs text-[#7C6E68] mt-1 leading-relaxed">
+                  Deseja realmente excluir o pedido{' '}
+                  <strong className="text-[#231818] font-mono">
+                    {confirmDeleteOrder.orderNumber}
+                  </strong>{' '}
+                  de <strong className="text-[#231818]">{confirmDeleteOrder.customerName}</strong>?
+                  Esta ação não pode ser desfeita.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={isDeletingOrder}
+                onClick={() => setConfirmDeleteOrder(null)}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-[#7C6E68] hover:text-[#231818] hover:bg-[#FBF8F3] cursor-pointer min-h-[40px]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingOrder}
+                onClick={handleConfirmDeleteOrder}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-60 cursor-pointer min-h-[40px]"
+              >
+                {isDeletingOrder ? 'Apagando...' : 'Sim, apagar pedido'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
